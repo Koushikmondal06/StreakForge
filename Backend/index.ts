@@ -4,10 +4,8 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import authRoutes from "./routes/auth";
+import githubRoutes from "./routes/github";
 
-
-
-console.log(process.env.CLIENT_ID);
 const app = express();
 
 // Middleware
@@ -16,6 +14,7 @@ app.use(express.json());
 
 // Routes
 app.use("/auth", authRoutes);
+app.use("/github", githubRoutes);
 
 // Test route
 app.get("/", (req, res) => {
