@@ -25,7 +25,7 @@ export function ErrorDisplay({ message, onRetry }: { message: string; onRetry?: 
             <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="flex flex-col items-center gap-4 rounded-2xl border border-red-500/20 bg-red-500/5 p-8 text-center"
+                className="flex flex-col items-center gap-6 rounded-3xl border border-red-500/20 bg-red-500/5 p-10 text-center"
             >
                 <div className="text-4xl">⚠️</div>
                 <p className="text-sm font-medium text-red-400">{message}</p>

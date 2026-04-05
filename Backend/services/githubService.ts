@@ -63,3 +63,34 @@ export const calculateStreak = (data: Record<string, number>) => {
 
     return streak;
 };
+
+export const syncUserGithubData = async (token: string) => {
+    // 1. Get user to find username
+    const user = await getUser(token);
+    const username = user.login;
+
+    // 2. Get repos
+    const repos = await getRepos(token);
+
+    // 3. Get analytics for top 5 repos
+    let allCommits: any[] = [];
+    for (const r of repos.slice(0, 5)) {
+        try {
+            const commits = await getCommits(token, r.owner.login, r.name);
+            allCommits = allCommits.concat(commits);
+        } catch (e) {
+            console.error(`Failed fetching commits for ${r.name}`);
+        }
+    }
+
+    const processed = processCommits(allCommits);
+    const streak = calculateStreak(processed);
+
+    const analytics = {
+        streak,
+        totalCommits: allCommits.length,
+        commitsPerDay: processed,
+    };
+
+    return { username, repos, analytics };
+};

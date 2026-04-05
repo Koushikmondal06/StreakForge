@@ -35,7 +35,7 @@ export default function LoginPage() {
                     transition={{ duration: 0.6, delay: 0.2 }}
                     className="flex items-center gap-3"
                 >
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-600 shadow-2xl shadow-violet-600/30">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-gradient-to-br from-violet-600 to-indigo-600 shadow-2xl shadow-violet-600/30">
                         <Flame className="h-8 w-8 text-white" />
                     </div>
                 </motion.div>
@@ -62,7 +62,7 @@ export default function LoginPage() {
                     transition={{ duration: 0.5, delay: 0.5 }}
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.98 }}
-                    className="group flex items-center gap-3 rounded-2xl bg-white px-8 py-4 text-base font-semibold text-gray-900 shadow-2xl shadow-white/10 transition-all hover:shadow-white/20"
+                    className="group flex items-center gap-3 rounded-3xl bg-white px-8 py-4 text-base font-semibold text-gray-900 shadow-2xl shadow-white/10 transition-all hover:shadow-white/20"
                 >
                     <GithubIcon className="h-5 w-5" />
                     Sign in with GitHub

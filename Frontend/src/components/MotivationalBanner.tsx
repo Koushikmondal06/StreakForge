@@ -21,7 +21,7 @@ export default function MotivationalBanner({ streak }: MotivationalBannerProps) 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.4 }}
-            className="relative overflow-hidden rounded-2xl border border-[var(--color-border)] bg-gradient-to-r from-violet-600/10 via-[var(--color-bg-card)] to-indigo-600/10 p-6"
+            className="relative overflow-hidden rounded-3xl border border-[var(--color-border)] bg-gradient-to-r from-violet-600/10 via-[var(--color-bg-card)] to-indigo-600/10 p-8 md:p-10"
         >
             <div className="absolute -right-6 -top-6 text-6xl opacity-20">{emoji}</div>
             <p className="relative text-sm font-medium text-[var(--color-text-secondary)]">

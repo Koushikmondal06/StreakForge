@@ -1,17 +1,21 @@
 import { motion } from 'framer-motion';
 import { LayoutDashboard, GitBranch, Settings, LogOut, Flame } from 'lucide-react';
 
+export type TabId = 'dashboard' | 'repos' | 'settings';
+
 interface SidebarProps {
+    activeTab: TabId;
+    onTabChange: (tab: TabId) => void;
     onLogout: () => void;
 }
 
 const navItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', active: true },
-    { icon: GitBranch, label: 'Repos', active: false },
-    { icon: Settings, label: 'Settings', active: false },
+    { id: 'dashboard' as TabId, icon: LayoutDashboard, label: 'Dashboard' },
+    { id: 'repos' as TabId, icon: GitBranch, label: 'Repos' },
+    { id: 'settings' as TabId, icon: Settings, label: 'Settings' },
 ];
 
-export default function Sidebar({ onLogout }: SidebarProps) {
+export default function Sidebar({ activeTab, onTabChange, onLogout }: SidebarProps) {
     return (
         <motion.aside
             initial={{ x: -80, opacity: 0 }}
@@ -31,28 +35,32 @@ export default function Sidebar({ onLogout }: SidebarProps) {
             </div>
 
             {/* Nav Items */}
-            <nav className="mt-4 flex-1 space-y-1 px-3">
-                {navItems.map((item) => (
-                    <button
-                        key={item.label}
-                        className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${item.active
-                                ? 'bg-[var(--color-accent-glow)] text-[var(--color-accent)]'
-                                : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-card)] hover:text-[var(--color-text-primary)]'
-                            }`}
-                    >
-                        <item.icon className="h-[18px] w-[18px]" />
-                        {item.label}
-                    </button>
-                ))}
+            <nav className="mt-4 flex-1 space-y-2 px-4">
+                {navItems.map((item) => {
+                    const isActive = activeTab === item.id;
+                    return (
+                        <button
+                            key={item.id}
+                            onClick={() => onTabChange(item.id)}
+                            className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${isActive
+                                    ? 'bg-[var(--color-accent-glow)] text-[var(--color-accent)]'
+                                    : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-card)] hover:text-[var(--color-text-primary)]'
+                                }`}
+                        >
+                            <item.icon className="h-[20px] w-[20px]" />
+                            {item.label}
+                        </button>
+                    );
+                })}
             </nav>
 
             {/* Logout */}
-            <div className="border-t border-[var(--color-border)] p-3">
+            <div className="border-t border-[var(--color-border)] p-4">
                 <button
                     onClick={onLogout}
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] transition-all hover:bg-red-500/10 hover:text-red-400"
+                    className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[var(--color-text-secondary)] transition-all hover:bg-red-500/10 hover:text-red-400"
                 >
-                    <LogOut className="h-[18px] w-[18px]" />
+                    <LogOut className="h-[20px] w-[20px]" />
                     Logout
                 </button>
             </div>

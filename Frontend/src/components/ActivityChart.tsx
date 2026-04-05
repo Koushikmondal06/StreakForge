@@ -41,9 +41,9 @@ export default function ActivityChart({ commitsPerDay }: ActivityChartProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-6"
+            className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-8 md:p-10"
         >
-            <div className="mb-6 flex items-center justify-between">
+            <div className="mb-8 flex items-center justify-between">
                 <div>
                     <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
                         Activity Overview
@@ -61,11 +61,11 @@ export default function ActivityChart({ commitsPerDay }: ActivityChartProps) {
             </div>
 
             <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+                <AreaChart data={chartData} margin={{ top: 20, right: 20, left: -10, bottom: 10 }}>
                     <defs>
                         <linearGradient id="commitGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.4} />
-                            <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                            <stop offset="5%" stopColor="var(--color-success)" stopOpacity={0.4} />
+                            <stop offset="95%" stopColor="var(--color-success)" stopOpacity={0} />
                         </linearGradient>
                     </defs>
                     <CartesianGrid
@@ -77,6 +77,7 @@ export default function ActivityChart({ commitsPerDay }: ActivityChartProps) {
                         dataKey="displayDate"
                         stroke="var(--color-text-muted)"
                         fontSize={11}
+                        fontFamily="var(--font-mono)"
                         tickLine={false}
                         axisLine={false}
                         interval="preserveStartEnd"
@@ -84,6 +85,7 @@ export default function ActivityChart({ commitsPerDay }: ActivityChartProps) {
                     <YAxis
                         stroke="var(--color-text-muted)"
                         fontSize={11}
+                        fontFamily="var(--font-mono)"
                         tickLine={false}
                         axisLine={false}
                         allowDecimals={false}
@@ -105,13 +107,13 @@ export default function ActivityChart({ commitsPerDay }: ActivityChartProps) {
                     <Area
                         type="monotone"
                         dataKey="commits"
-                        stroke="#8b5cf6"
+                        stroke="var(--color-success)"
                         strokeWidth={2}
                         fill="url(#commitGradient)"
                         dot={false}
                         activeDot={{
                             r: 5,
-                            fill: '#8b5cf6',
+                            fill: 'var(--color-success)',
                             stroke: '#0a0a0f',
                             strokeWidth: 2,
                         }}

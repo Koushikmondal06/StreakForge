@@ -1,7 +1,6 @@
 import express, { Request, Response } from "express";
-import { getRepos } from "../services/githubService";
-import { getCommits } from "../services/githubService";
-import { processCommits, calculateStreak } from "../services/githubService";
+import { getRepos, getCommits, processCommits, calculateStreak, syncUserGithubData, getUser } from "../services/githubService";
+import { getCachedUserData, updateCachedUserData } from "../services/supabaseService";
 
 
 const router = express.Router();
@@ -14,8 +13,17 @@ router.get("/repos", async (req: Request, res: Response) => {
             return res.status(401).json({ error: "No token provided" });
         }
 
-        const repos = await getRepos(token);
+        const user = await getUser(token);
 
+        // Try cache
+        const cached = await getCachedUserData(user.login);
+        if (cached && cached.repos_json) {
+            return res.json(cached.repos_json);
+        }
+
+        // Fetch fresh if no cache
+        const { repos, analytics } = await syncUserGithubData(token);
+        await updateCachedUserData(user.login, repos, analytics, {});
         res.json(repos);
 
     } catch (error) {
@@ -69,23 +77,19 @@ router.get("/analytics", async (req: Request, res: Response) => {
             return res.status(401).json({ error: "No token provided" });
         }
 
-        const repos = await getRepos(token);
+        const user = await getUser(token);
 
-        let allCommits: any[] = [];
-
-        for (const r of repos.slice(0, 5)) {
-            const commits = await getCommits(token, r.owner.login, r.name);
-            allCommits = allCommits.concat(commits);
+        // Try cache
+        const cached = await getCachedUserData(user.login);
+        if (cached && cached.analytics_json) {
+            return res.json(cached.analytics_json);
         }
 
-        const processed = processCommits(allCommits);
-        const streak = calculateStreak(processed);
+        // Fetch fresh if no cache
+        const { repos, analytics } = await syncUserGithubData(token);
+        await updateCachedUserData(user.login, repos, analytics, {});
 
-        res.json({
-            streak,
-            totalCommits: allCommits.length,
-            commitsPerDay: processed,
-        });
+        res.json(analytics);
 
     } catch (error) {
         console.error(error);

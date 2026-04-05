@@ -26,7 +26,7 @@ export default function InsightsSection({ commitsPerDay, streak }: InsightsSecti
                 icon: Calendar,
                 title: `Most active on ${mostActiveDay[0]}s`,
                 description: `You tend to make ${Math.round(mostActiveDay[1] / entries.length * 7)} commits on ${mostActiveDay[0]}s`,
-                color: 'text-blue-400',
+                color: 'text-[var(--color-accent)]',
             });
         }
 
@@ -36,14 +36,14 @@ export default function InsightsSection({ commitsPerDay, streak }: InsightsSecti
                 icon: TrendingUp,
                 title: 'Your streak is on fire!',
                 description: `${streak} days strong — you're building an incredible habit`,
-                color: 'text-orange-400',
+                color: 'text-[#f97316]',
             });
         } else if (streak >= 3) {
             result.push({
                 icon: TrendingUp,
                 title: 'Your streak is growing',
                 description: `${streak} days and counting — keep the momentum going`,
-                color: 'text-green-400',
+                color: 'text-[var(--color-success)]',
             });
         } else {
             result.push({
@@ -66,7 +66,7 @@ export default function InsightsSection({ commitsPerDay, streak }: InsightsSecti
                 icon: Zap,
                 title: `Peak: ${peakDay[1]} commits`,
                 description: `Your most productive day was ${peakDate}`,
-                color: 'text-purple-400',
+                color: 'text-[var(--color-accent)]',
             });
         }
 
@@ -80,12 +80,12 @@ export default function InsightsSection({ commitsPerDay, streak }: InsightsSecti
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-6"
+            className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-8 md:p-10"
         >
-            <h3 className="mb-4 text-lg font-semibold text-[var(--color-text-primary)]">
+            <h3 className="mb-6 text-xl font-semibold text-[var(--color-text-primary)]">
                 📅 Insights
             </h3>
-            <div className="space-y-4">
+            <div className="space-y-5">
                 {insights.map((insight, i) => (
                     <motion.div
                         key={i}

@@ -20,14 +20,15 @@ function MetricCard({ label, value, icon: Icon, variant = 'default', subtitle }:
             style={{
                 position: 'relative',
                 overflow: 'hidden',
-                borderRadius: '16px',
+                borderRadius: '24px',
                 border: isStreak ? '1px solid rgba(249, 115, 22, 0.3)' : '1px solid var(--color-border)',
-                padding: '24px',
+                padding: '32px',
                 background: isStreak
                     ? 'linear-gradient(135deg, rgba(249, 115, 22, 0.08), var(--color-bg-card), var(--color-bg-card))'
                     : 'var(--color-bg-card)',
                 boxShadow: isStreak ? '0 0 30px rgba(249, 115, 22, 0.1)' : 'none',
-                transition: 'transform 0.3s, border-color 0.3s',
+                transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s',
+                cursor: 'pointer',
             }}
             whileHover={{ scale: 1.02 }}
         >
@@ -51,6 +52,7 @@ function MetricCard({ label, value, icon: Icon, variant = 'default', subtitle }:
                     </p>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
                         <span style={{
+                            fontFamily: 'var(--font-mono)',
                             fontSize: '36px',
                             fontWeight: 700,
                             letterSpacing: '-0.02em',
@@ -94,7 +96,7 @@ interface MetricCardsProps {
 
 export default function MetricCards({ streak, totalCommits, activeDays }: MetricCardsProps) {
     return (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '32px' }}>
             <MetricCard
                 label="Current Streak"
                 value={streak}
