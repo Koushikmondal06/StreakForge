@@ -1,35 +1,22 @@
-import { motion } from 'framer-motion';
-
 interface MotivationalBannerProps {
     streak: number;
 }
 
-function getMessage(streak: number): { text: string; emoji: string } {
-    if (streak >= 30) return { text: "Legendary! You're rewriting history! 🏆", emoji: '🏆' };
-    if (streak >= 14) return { text: "Unstoppable! Two weeks of pure dedication!", emoji: '⚡' };
-    if (streak >= 7) return { text: "You're on fire! Keep going! 🔥", emoji: '🔥' };
-    if (streak >= 3) return { text: "Nice momentum! Don't break the chain!", emoji: '💪' };
-    if (streak >= 1) return { text: "Great start! Every journey begins with day one.", emoji: '🌱' };
-    return { text: "Time to forge your streak! Make your first commit.", emoji: '⚒️' };
+function getMessage(streak: number): string {
+    if (streak >= 30) return '🏆 Legendary! You\'re rewriting history!';
+    if (streak >= 14) return '⚡ Unstoppable — two weeks of pure dedication!';
+    if (streak >= 7) return '🔥 You\'re on fire! Keep going!';
+    if (streak >= 3) return '💪 Nice momentum — don\'t break the chain!';
+    if (streak >= 1) return '🌱 Great start! Every journey begins with day one.';
+    return '⚒️ Time to forge your streak — make your first commit.';
 }
 
 export default function MotivationalBanner({ streak }: MotivationalBannerProps) {
-    const { text, emoji } = getMessage(streak);
-
     return (
-        <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="relative overflow-hidden rounded-3xl border border-[var(--color-border)] bg-gradient-to-r from-violet-600/10 via-[var(--color-bg-card)] to-indigo-600/10 p-8 md:p-10"
-        >
-            <div className="absolute -right-6 -top-6 text-6xl opacity-20">{emoji}</div>
-            <p className="relative text-sm font-medium text-[var(--color-text-secondary)]">
-                Daily Motivation
+        <div className="rounded-2xl border border-[var(--color-border)] bg-gradient-to-r from-[var(--color-accent-glow)] via-[var(--color-bg-card)] to-[var(--color-bg-card)] px-6 py-4">
+            <p className="text-[13px] font-medium text-[var(--color-text-secondary)]">
+                {getMessage(streak)}
             </p>
-            <p className="relative mt-2 text-lg font-semibold bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
-                {text}
-            </p>
-        </motion.div>
+        </div>
     );
 }

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import Sidebar, { type TabId } from '@/components/Sidebar';
@@ -10,6 +9,7 @@ import InsightsSection from '@/components/InsightsSection';
 import RepoSelector from '@/components/RepoSelector';
 import MotivationalBanner from '@/components/MotivationalBanner';
 import LoadingSpinner, { ErrorDisplay } from '@/components/LoadingSpinner';
+import AiDashboardAnalysis from '@/components/AiDashboardAnalysis';
 
 export default function DashboardPage() {
     const { token, isAuthenticated, logout } = useAuth();
@@ -23,58 +23,67 @@ export default function DashboardPage() {
     const activeDays = data ? Object.keys(data.commitsPerDay).length : 0;
 
     const renderReposTab = () => (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-            <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mb-8">Repositories</h1>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+            <h1 className="text-xl font-semibold text-[var(--color-text-primary)] mb-6">Repositories</h1>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {repos.map(repo => (
-                    <div key={repo.id} className="p-8 rounded-3xl border border-[var(--color-border)] bg-[var(--color-bg-card)]">
-                        <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">{repo.name}</h3>
-                        {repo.description && <p className="mt-2 text-sm text-[var(--color-text-secondary)] line-clamp-2">{repo.description}</p>}
-                        <div className="mt-4 flex gap-4 text-xs text-[var(--color-text-muted)]">
+                    <div key={repo.id} className="p-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] transition-colors hover:border-[var(--color-border-hover)]">
+                        <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">{repo.name}</h3>
+                        {repo.description && <p className="mt-1.5 text-xs text-[var(--color-text-muted)] line-clamp-2">{repo.description}</p>}
+                        <div className="mt-3 flex gap-3 text-[11px] text-[var(--color-text-muted)]">
                             <span>⭐ {repo.stargazers_count}</span>
                             {repo.language && <span>{repo.language}</span>}
                         </div>
                     </div>
                 ))}
             </div>
-        </motion.div>
+        </div>
+    );
+
+    const renderInsightsTab = () => (
+        <div>
+            <h1 className="text-xl font-semibold text-[var(--color-text-primary)] mb-6">AI Insights</h1>
+            {data && (
+                <AiDashboardAnalysis
+                    repos={repos}
+                    analytics={data}
+                />
+            )}
+        </div>
     );
 
     const renderSettingsTab = () => (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-2xl">
-            <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mb-8">Settings</h1>
-            <div className="p-10 rounded-3xl border border-[var(--color-border)] bg-[var(--color-bg-card)]">
-                <p className="text-[var(--color-text-secondary)] mb-6">Settings and preferences will go here.</p>
-                <button className="px-6 py-3 rounded-xl bg-[var(--color-border)] text-white hover:bg-[var(--color-border-hover)] transition-colors">
+        <div className="max-w-lg">
+            <h1 className="text-xl font-semibold text-[var(--color-text-primary)] mb-6">Settings</h1>
+            <div className="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)]">
+                <p className="text-sm text-[var(--color-text-muted)] mb-4">Settings and preferences will appear here.</p>
+                <button className="px-4 py-2 rounded-lg bg-white/[0.06] text-sm text-[var(--color-text-primary)] hover:bg-white/[0.1] transition-colors border border-[var(--color-border)]">
                     Manage Connections
                 </button>
             </div>
-        </motion.div>
+        </div>
     );
 
     return (
         <div className="min-h-screen bg-[var(--color-bg-primary)]">
             <Sidebar activeTab={activeTab} onTabChange={setActiveTab} onLogout={logout} />
 
-            <main
-                style={{ marginLeft: '240px' }}
-                className="min-h-screen pb-16"
-            >
-                {/* Increased padding here to space out the content properly */}
-                <div className="px-12 py-10" style={{ maxWidth: '1400px', margin: '0 auto' }}>
+            <main style={{ marginLeft: '220px' }} className="min-h-screen">
+                <div className="px-8 py-6" style={{ maxWidth: '1200px' }}>
 
                     {activeTab === 'repos' && renderReposTab()}
+                    {activeTab === 'insights' && renderInsightsTab()}
                     {activeTab === 'settings' && renderSettingsTab()}
 
                     {activeTab === 'dashboard' && (
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                            {/* Header */}
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '40px' }}>
+                        <div>
+                            {/* Header row with controls */}
+                            <div className="flex items-center justify-between mb-6">
                                 <div>
-                                    <h1 className="text-3xl font-bold text-[var(--color-text-primary)] tracking-tight">
+                                    <h1 className="text-xl font-semibold text-[var(--color-text-primary)]">
                                         Dashboard
                                     </h1>
-                                    <p className="mt-2 text-base text-[var(--color-text-muted)]">
+                                    <p className="mt-1 text-xs text-[var(--color-text-muted)]">
                                         Your GitHub activity at a glance
                                     </p>
                                 </div>
@@ -90,34 +99,38 @@ export default function DashboardPage() {
                             ) : error ? (
                                 <ErrorDisplay message={error} onRetry={refetch} />
                             ) : data ? (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+                                <div className="flex flex-col gap-6">
                                     {/* Motivational Banner */}
                                     <MotivationalBanner streak={data.streak} />
 
                                     {/* Metric Cards */}
-                                    <div className="mt-2">
-                                        <MetricCards
-                                            streak={data.streak}
-                                            totalCommits={data.totalCommits}
-                                            activeDays={activeDays}
-                                        />
-                                    </div>
+                                    <MetricCards
+                                        streak={data.streak}
+                                        totalCommits={data.totalCommits}
+                                        activeDays={activeDays}
+                                    />
 
-                                    {/* Chart + Insights */}
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1.2fr', gap: '48px', marginTop: '16px' }}>
-                                        <div style={{ minWidth: 0 }}>
+                                    {/* Chart + Insights grid */}
+                                    <div className="grid grid-cols-5 gap-4">
+                                        <div className="col-span-3">
                                             <ActivityChart commitsPerDay={data.commitsPerDay} />
                                         </div>
-                                        <div style={{ minWidth: 0 }}>
+                                        <div className="col-span-2">
                                             <InsightsSection
                                                 commitsPerDay={data.commitsPerDay}
                                                 streak={data.streak}
                                             />
                                         </div>
                                     </div>
+
+                                    {/* AI Dashboard Analysis */}
+                                    <AiDashboardAnalysis
+                                        repos={repos}
+                                        analytics={data}
+                                    />
                                 </div>
                             ) : null}
-                        </motion.div>
+                        </div>
                     )}
 
                 </div>

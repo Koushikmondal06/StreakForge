@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { motion } from 'framer-motion';
 import { TrendingUp, Calendar, Zap } from 'lucide-react';
 
 interface InsightsSectionProps {
@@ -12,7 +11,7 @@ export default function InsightsSection({ commitsPerDay, streak }: InsightsSecti
         const entries = Object.entries(commitsPerDay);
         if (entries.length === 0) return [];
 
-        const result: { icon: typeof TrendingUp; title: string; description: string; color: string }[] = [];
+        const result: { icon: typeof TrendingUp; title: string; description: string }[] = [];
 
         // Most active day of the week
         const dayCount: Record<string, number> = {};
@@ -25,49 +24,25 @@ export default function InsightsSection({ commitsPerDay, streak }: InsightsSecti
             result.push({
                 icon: Calendar,
                 title: `Most active on ${mostActiveDay[0]}s`,
-                description: `You tend to make ${Math.round(mostActiveDay[1] / entries.length * 7)} commits on ${mostActiveDay[0]}s`,
-                color: 'text-[var(--color-accent)]',
+                description: `~${Math.round(mostActiveDay[1] / entries.length * 7)} commits on ${mostActiveDay[0]}s`,
             });
         }
 
         // Streak insight
         if (streak >= 7) {
-            result.push({
-                icon: TrendingUp,
-                title: 'Your streak is on fire!',
-                description: `${streak} days strong — you're building an incredible habit`,
-                color: 'text-[#f97316]',
-            });
+            result.push({ icon: TrendingUp, title: 'Streak is on fire!', description: `${streak} days strong` });
         } else if (streak >= 3) {
-            result.push({
-                icon: TrendingUp,
-                title: 'Your streak is growing',
-                description: `${streak} days and counting — keep the momentum going`,
-                color: 'text-[var(--color-success)]',
-            });
+            result.push({ icon: TrendingUp, title: 'Streak is growing', description: `${streak} days — keep going` });
         } else {
-            result.push({
-                icon: TrendingUp,
-                title: 'Time to build momentum',
-                description: 'Commit consistently to build a powerful streak',
-                color: 'text-yellow-400',
-            });
+            result.push({ icon: TrendingUp, title: 'Build momentum', description: 'Commit daily to grow your streak' });
         }
 
-        // Peak productivity
-        const sortedByCommits = entries.sort(([, a], [, b]) => b - a);
+        // Peak day
+        const sortedByCommits = [...entries].sort(([, a], [, b]) => b - a);
         const peakDay = sortedByCommits[0];
         if (peakDay) {
-            const peakDate = new Date(peakDay[0]).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-            });
-            result.push({
-                icon: Zap,
-                title: `Peak: ${peakDay[1]} commits`,
-                description: `Your most productive day was ${peakDate}`,
-                color: 'text-[var(--color-accent)]',
-            });
+            const peakDate = new Date(peakDay[0]).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            result.push({ icon: Zap, title: `Peak: ${peakDay[1]} commits`, description: `Best day was ${peakDate}` });
         }
 
         return result;
@@ -76,38 +51,26 @@ export default function InsightsSection({ commitsPerDay, streak }: InsightsSecti
     if (insights.length === 0) return null;
 
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-8 md:p-10"
-        >
-            <h3 className="mb-6 text-xl font-semibold text-[var(--color-text-primary)]">
-                📅 Insights
-            </h3>
-            <div className="space-y-5">
+        <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-6">
+            <h3 className="mb-4 text-sm font-semibold text-[var(--color-text-primary)]">Insights</h3>
+            <div className="space-y-3">
                 {insights.map((insight, i) => (
-                    <motion.div
+                    <div
                         key={i}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.3, delay: 0.1 * i }}
-                        className="flex items-start gap-4 rounded-xl bg-[var(--color-bg-secondary)] p-4 transition-colors hover:bg-[var(--color-bg-card-hover)]"
+                        className="flex items-start gap-3 rounded-lg bg-[var(--color-bg-secondary)] p-3 transition-colors hover:bg-[var(--color-bg-card-hover)]"
                     >
-                        <div className={`mt-0.5 ${insight.color}`}>
-                            <insight.icon className="h-5 w-5" />
-                        </div>
+                        <insight.icon className="mt-0.5 h-4 w-4 text-[var(--color-accent)]" />
                         <div>
-                            <p className="text-sm font-medium text-[var(--color-text-primary)]">
+                            <p className="text-[13px] font-medium text-[var(--color-text-primary)]">
                                 {insight.title}
                             </p>
-                            <p className="mt-1 text-xs text-[var(--color-text-muted)]">
+                            <p className="mt-0.5 text-xs text-[var(--color-text-muted)]">
                                 {insight.description}
                             </p>
                         </div>
-                    </motion.div>
+                    </div>
                 ))}
             </div>
-        </motion.div>
+        </div>
     );
 }

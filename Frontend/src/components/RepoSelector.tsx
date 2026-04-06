@@ -22,25 +22,25 @@ export default function RepoSelector({ repos, selectedRepo, onSelect }: RepoSele
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const displayName = selectedRepo ?? 'All Repositories';
+    const displayName = selectedRepo?.split('/')[1] ?? 'All Repositories';
 
     return (
         <div ref={dropdownRef} className="relative">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] px-4 py-2.5 text-sm font-medium text-[var(--color-text-primary)] transition-all hover:border-[var(--color-border-hover)] hover:bg-[var(--color-bg-card-hover)]"
+                className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] px-3 py-2 text-[13px] font-medium text-[var(--color-text-primary)] transition-colors hover:border-[var(--color-border-hover)]"
             >
-                <span className="max-w-[200px] truncate">{displayName}</span>
-                <ChevronDown className={`h-4 w-4 text-[var(--color-text-muted)] transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                <span className="max-w-[160px] truncate">{displayName}</span>
+                <ChevronDown className={`h-3.5 w-3.5 text-[var(--color-text-muted)] transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 z-50 mt-2 max-h-72 w-64 overflow-auto rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] p-1.5 shadow-2xl">
+                <div className="absolute right-0 z-50 mt-1.5 max-h-64 w-56 overflow-auto rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] p-1 shadow-xl">
                     <button
                         onClick={() => { onSelect(null); setIsOpen(false); }}
-                        className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${!selectedRepo
-                                ? 'bg-[var(--color-accent-glow)] text-[var(--color-accent)]'
-                                : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-card)] hover:text-[var(--color-text-primary)]'
+                        className={`w-full rounded-md px-3 py-2 text-left text-[13px] transition-colors ${!selectedRepo
+                                ? 'bg-white/[0.06] text-white'
+                                : 'text-[var(--color-text-secondary)] hover:bg-white/[0.04]'
                             }`}
                     >
                         All Repositories
@@ -52,17 +52,12 @@ export default function RepoSelector({ repos, selectedRepo, onSelect }: RepoSele
                             <button
                                 key={repo.id}
                                 onClick={() => { onSelect(fullName); setIsOpen(false); }}
-                                className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${isSelected
-                                        ? 'bg-[var(--color-accent-glow)] text-[var(--color-accent)]'
-                                        : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-card)] hover:text-[var(--color-text-primary)]'
+                                className={`w-full rounded-md px-3 py-2 text-left text-[13px] transition-colors ${isSelected
+                                        ? 'bg-white/[0.06] text-white'
+                                        : 'text-[var(--color-text-secondary)] hover:bg-white/[0.04]'
                                     }`}
                             >
-                                <div className="truncate font-medium">{repo.name}</div>
-                                {repo.description && (
-                                    <div className="mt-0.5 truncate text-xs text-[var(--color-text-muted)]">
-                                        {repo.description}
-                                    </div>
-                                )}
+                                {repo.name}
                             </button>
                         );
                     })}

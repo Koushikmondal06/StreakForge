@@ -1,11 +1,9 @@
 import { useMemo } from 'react';
-import { motion } from 'framer-motion';
 import {
     AreaChart,
     Area,
     XAxis,
     YAxis,
-    CartesianGrid,
     Tooltip,
     ResponsiveContainer,
 } from 'recharts';
@@ -30,53 +28,43 @@ export default function ActivityChart({ commitsPerDay }: ActivityChartProps) {
 
     if (chartData.length === 0) {
         return (
-            <div className="flex h-64 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-6">
-                <p className="text-[var(--color-text-muted)]">No commit data available</p>
+            <div className="flex h-64 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)]">
+                <p className="text-sm text-[var(--color-text-muted)]">No commit data available</p>
             </div>
         );
     }
 
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-8 md:p-10"
-        >
-            <div className="mb-8 flex items-center justify-between">
+        <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-6">
+            <div className="mb-6 flex items-center justify-between">
                 <div>
-                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
+                    <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">
                         Activity Overview
                     </h3>
-                    <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-                        Commits per day over time
+                    <p className="mt-0.5 text-xs text-[var(--color-text-muted)]">
+                        Commits per day
                     </p>
                 </div>
-                <div className="flex items-center gap-2 rounded-lg bg-[var(--color-accent-glow)] px-3 py-1.5">
-                    <div className="h-2 w-2 rounded-full bg-[var(--color-accent)]" />
-                    <span className="text-xs font-medium text-[var(--color-accent)]">
+                <div className="flex items-center gap-1.5 rounded-md bg-[var(--color-accent-glow)] px-2.5 py-1">
+                    <div className="h-1.5 w-1.5 rounded-full bg-[var(--color-accent)]" />
+                    <span className="text-[11px] font-medium text-[var(--color-accent)]">
                         {chartData.reduce((s, d) => s + d.commits, 0)} total
                     </span>
                 </div>
             </div>
 
-            <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={chartData} margin={{ top: 20, right: 20, left: -10, bottom: 10 }}>
+            <ResponsiveContainer width="100%" height={260}>
+                <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
                     <defs>
-                        <linearGradient id="commitGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="var(--color-success)" stopOpacity={0.4} />
-                            <stop offset="95%" stopColor="var(--color-success)" stopOpacity={0} />
+                        <linearGradient id="commitGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="var(--color-accent)" stopOpacity={0.3} />
+                            <stop offset="100%" stopColor="var(--color-accent)" stopOpacity={0} />
                         </linearGradient>
                     </defs>
-                    <CartesianGrid
-                        strokeDasharray="3 3"
-                        stroke="var(--color-border)"
-                        vertical={false}
-                    />
                     <XAxis
                         dataKey="displayDate"
                         stroke="var(--color-text-muted)"
-                        fontSize={11}
+                        fontSize={10}
                         fontFamily="var(--font-mono)"
                         tickLine={false}
                         axisLine={false}
@@ -84,7 +72,7 @@ export default function ActivityChart({ commitsPerDay }: ActivityChartProps) {
                     />
                     <YAxis
                         stroke="var(--color-text-muted)"
-                        fontSize={11}
+                        fontSize={10}
                         fontFamily="var(--font-mono)"
                         tickLine={false}
                         axisLine={false}
@@ -94,32 +82,32 @@ export default function ActivityChart({ commitsPerDay }: ActivityChartProps) {
                         contentStyle={{
                             background: 'var(--color-bg-secondary)',
                             border: '1px solid var(--color-border)',
-                            borderRadius: '12px',
-                            padding: '12px',
-                            fontSize: '13px',
+                            borderRadius: '8px',
+                            padding: '8px 12px',
+                            fontSize: '12px',
                             color: 'var(--color-text-primary)',
-                            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                            boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
                         }}
-                        labelStyle={{ color: 'var(--color-text-secondary)', marginBottom: '4px' }}
+                        labelStyle={{ color: 'var(--color-text-muted)', fontSize: '11px' }}
                         itemStyle={{ color: 'var(--color-accent)' }}
-                        cursor={{ stroke: 'var(--color-accent)', strokeWidth: 1, strokeDasharray: '4 4' }}
+                        cursor={{ stroke: 'var(--color-border)', strokeWidth: 1 }}
                     />
                     <Area
                         type="monotone"
                         dataKey="commits"
-                        stroke="var(--color-success)"
-                        strokeWidth={2}
-                        fill="url(#commitGradient)"
+                        stroke="var(--color-accent)"
+                        strokeWidth={1.5}
+                        fill="url(#commitGrad)"
                         dot={false}
                         activeDot={{
-                            r: 5,
-                            fill: 'var(--color-success)',
-                            stroke: '#0a0a0f',
+                            r: 4,
+                            fill: 'var(--color-accent)',
+                            stroke: 'var(--color-bg-card)',
                             strokeWidth: 2,
                         }}
                     />
                 </AreaChart>
             </ResponsiveContainer>
-        </motion.div>
+        </div>
     );
 }

@@ -5,16 +5,18 @@ dotenv.config();
 
 import authRoutes from "./routes/auth";
 import githubRoutes from "./routes/github";
+import geminiRoutes from "./routes/gemini";
 
 const app = express();
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 
 // Routes
 app.use("/auth", authRoutes);
 app.use("/github", githubRoutes);
+app.use("/ai", geminiRoutes);
 
 // Test route
 app.get("/", (req, res) => {

@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { Flame, GitCommit, CalendarDays, type LucideIcon } from 'lucide-react';
 
 interface MetricCardProps {
@@ -13,78 +12,53 @@ function MetricCard({ label, value, icon: Icon, variant = 'default', subtitle }:
     const isStreak = variant === 'streak';
 
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            style={{
-                position: 'relative',
-                overflow: 'hidden',
-                borderRadius: '24px',
-                border: isStreak ? '1px solid rgba(249, 115, 22, 0.3)' : '1px solid var(--color-border)',
-                padding: '32px',
-                background: isStreak
-                    ? 'linear-gradient(135deg, rgba(249, 115, 22, 0.08), var(--color-bg-card), var(--color-bg-card))'
-                    : 'var(--color-bg-card)',
-                boxShadow: isStreak ? '0 0 30px rgba(249, 115, 22, 0.1)' : 'none',
-                transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s',
-                cursor: 'pointer',
-            }}
-            whileHover={{ scale: 1.02 }}
+        <div
+            className={`relative overflow-hidden rounded-2xl border p-6 transition-all duration-200 hover:border-[var(--color-border-hover)] ${isStreak
+                    ? 'border-orange-500/20 bg-gradient-to-br from-orange-500/[0.06] to-[var(--color-bg-card)]'
+                    : 'border-[var(--color-border)] bg-[var(--color-bg-card)]'
+                }`}
+            style={isStreak ? { boxShadow: '0 0 40px rgba(249, 115, 22, 0.06)' } : {}}
         >
             {isStreak && (
-                <div style={{
-                    position: 'absolute',
-                    top: '-48px',
-                    right: '-48px',
-                    width: '128px',
-                    height: '128px',
-                    borderRadius: '50%',
-                    background: 'rgba(249, 115, 22, 0.1)',
-                    filter: 'blur(32px)',
-                }} />
+                <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-orange-500/10 blur-2xl" />
             )}
 
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+            <div className="flex items-start justify-between">
                 <div>
-                    <p style={{ fontSize: '14px', fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: '12px' }}>
+                    <p className="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
                         {label}
                     </p>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                        <span style={{
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: '36px',
-                            fontWeight: 700,
-                            letterSpacing: '-0.02em',
-                            color: isStreak ? '#fb923c' : 'var(--color-text-primary)',
-                        }}>
+                    <div className="mt-3 flex items-baseline gap-2">
+                        <span
+                            className="text-3xl font-bold tracking-tight"
+                            style={{
+                                fontFamily: 'var(--font-mono)',
+                                color: isStreak ? '#f97316' : 'var(--color-text-primary)',
+                            }}
+                        >
                             {value}
                         </span>
                         {isStreak && (
-                            <span style={{ fontSize: '24px', animation: 'fire-glow 2s ease-in-out infinite' }}>
+                            <span className="text-xl" style={{ animation: 'fire-glow 2s ease-in-out infinite' }}>
                                 🔥
                             </span>
                         )}
                     </div>
                     {subtitle && (
-                        <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '8px' }}>
-                            {subtitle}
-                        </p>
+                        <p className="mt-2 text-xs text-[var(--color-text-muted)]">{subtitle}</p>
                     )}
                 </div>
-                <div style={{
-                    borderRadius: '12px',
-                    padding: '12px',
-                    background: isStreak ? 'rgba(249, 115, 22, 0.12)' : 'var(--color-accent-glow)',
-                }}>
-                    <Icon style={{
-                        width: '20px',
-                        height: '20px',
-                        color: isStreak ? '#fb923c' : 'var(--color-accent)',
-                    }} />
+                <div
+                    className={`rounded-lg p-2.5 ${isStreak ? 'bg-orange-500/10' : 'bg-[var(--color-accent-glow)]'
+                        }`}
+                >
+                    <Icon
+                        className="h-4 w-4"
+                        style={{ color: isStreak ? '#f97316' : 'var(--color-accent)' }}
+                    />
                 </div>
             </div>
-        </motion.div>
+        </div>
     );
 }
 
@@ -96,13 +70,13 @@ interface MetricCardsProps {
 
 export default function MetricCards({ streak, totalCommits, activeDays }: MetricCardsProps) {
     return (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '32px' }}>
+        <div className="grid grid-cols-3 gap-4">
             <MetricCard
                 label="Current Streak"
                 value={streak}
                 icon={Flame}
                 variant="streak"
-                subtitle={streak > 0 ? `${streak} consecutive days` : 'Start your streak today!'}
+                subtitle={streak > 0 ? `${streak} consecutive days` : 'Start your streak today'}
             />
             <MetricCard
                 label="Total Commits"
@@ -114,7 +88,7 @@ export default function MetricCards({ streak, totalCommits, activeDays }: Metric
                 label="Active Days"
                 value={activeDays}
                 icon={CalendarDays}
-                subtitle="Days with at least 1 commit"
+                subtitle="Days with commits"
             />
         </div>
     );

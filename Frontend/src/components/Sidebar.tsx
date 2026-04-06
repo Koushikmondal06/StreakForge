@@ -1,7 +1,6 @@
-import { motion } from 'framer-motion';
-import { LayoutDashboard, GitBranch, Settings, LogOut, Flame } from 'lucide-react';
+import { LayoutDashboard, GitBranch, Brain, Settings, LogOut, Flame } from 'lucide-react';
 
-export type TabId = 'dashboard' | 'repos' | 'settings';
+export type TabId = 'dashboard' | 'repos' | 'insights' | 'settings';
 
 interface SidebarProps {
     activeTab: TabId;
@@ -11,43 +10,38 @@ interface SidebarProps {
 
 const navItems = [
     { id: 'dashboard' as TabId, icon: LayoutDashboard, label: 'Dashboard' },
-    { id: 'repos' as TabId, icon: GitBranch, label: 'Repos' },
+    { id: 'repos' as TabId, icon: GitBranch, label: 'Repositories' },
+    { id: 'insights' as TabId, icon: Brain, label: 'Insights (AI)' },
     { id: 'settings' as TabId, icon: Settings, label: 'Settings' },
 ];
 
 export default function Sidebar({ activeTab, onTabChange, onLogout }: SidebarProps) {
     return (
-        <motion.aside
-            initial={{ x: -80, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.4 }}
-            className="fixed left-0 top-0 z-40 flex h-screen w-[240px] flex-col border-r border-[var(--color-border)]"
-            style={{ background: 'rgba(14, 14, 20, 0.92)', backdropFilter: 'blur(24px)' }}
-        >
+        <aside className="fixed left-0 top-0 z-40 flex h-screen w-[220px] flex-col border-r border-[var(--color-border)] bg-[var(--color-bg-sidebar)]">
             {/* Logo */}
-            <div className="flex items-center gap-3 px-6 py-6">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 shadow-lg shadow-violet-600/20">
-                    <Flame className="h-5 w-5 text-white" />
+            <div className="flex items-center gap-3 px-5 py-6">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-red-600">
+                    <Flame className="h-4 w-4 text-white" />
                 </div>
-                <span className="text-lg font-bold tracking-tight text-[var(--color-text-primary)]">
+                <span className="text-base font-bold tracking-tight text-[var(--color-text-primary)]">
                     StreakForge
                 </span>
             </div>
 
-            {/* Nav Items */}
-            <nav className="mt-4 flex-1 space-y-2 px-4">
+            {/* Nav */}
+            <nav className="mt-2 flex-1 space-y-1 px-3">
                 {navItems.map((item) => {
                     const isActive = activeTab === item.id;
                     return (
                         <button
                             key={item.id}
                             onClick={() => onTabChange(item.id)}
-                            className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${isActive
-                                    ? 'bg-[var(--color-accent-glow)] text-[var(--color-accent)]'
-                                    : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-card)] hover:text-[var(--color-text-primary)]'
+                            className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-colors duration-150 ${isActive
+                                    ? 'bg-white/[0.06] text-white'
+                                    : 'text-[var(--color-text-muted)] hover:bg-white/[0.04] hover:text-[var(--color-text-secondary)]'
                                 }`}
                         >
-                            <item.icon className="h-[20px] w-[20px]" />
+                            <item.icon className="h-[18px] w-[18px]" />
                             {item.label}
                         </button>
                     );
@@ -55,15 +49,15 @@ export default function Sidebar({ activeTab, onTabChange, onLogout }: SidebarPro
             </nav>
 
             {/* Logout */}
-            <div className="border-t border-[var(--color-border)] p-4">
+            <div className="border-t border-[var(--color-border)] p-3">
                 <button
                     onClick={onLogout}
-                    className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[var(--color-text-secondary)] transition-all hover:bg-red-500/10 hover:text-red-400"
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium text-[var(--color-text-muted)] transition-colors hover:bg-red-500/10 hover:text-red-400"
                 >
-                    <LogOut className="h-[20px] w-[20px]" />
+                    <LogOut className="h-[18px] w-[18px]" />
                     Logout
                 </button>
             </div>
-        </motion.aside>
+        </aside>
     );
 }
