@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { TrendingUp, Calendar, Zap } from 'lucide-react';
+import { TrendingUp, Calendar, Zap, Moon, Sun } from 'lucide-react';
 
 interface InsightsSectionProps {
     commitsPerDay: Record<string, number>;
@@ -11,38 +11,52 @@ export default function InsightsSection({ commitsPerDay, streak }: InsightsSecti
         const entries = Object.entries(commitsPerDay);
         if (entries.length === 0) return [];
 
-        const result: { icon: typeof TrendingUp; title: string; description: string }[] = [];
+        const result: { icon: any; text: string; accent: string }[] = [];
 
-        // Most active day of the week
+        // Weekday vs Weekend analysis
+        let weekdayCommits = 0;
+        let weekendCommits = 0;
         const dayCount: Record<string, number> = {};
+
         for (const [date, count] of entries) {
+            const day = new Date(date).getDay();
             const dayName = new Date(date).toLocaleDateString('en-US', { weekday: 'long' });
             dayCount[dayName] = (dayCount[dayName] ?? 0) + count;
+            if (day === 0 || day === 6) {
+                weekendCommits += count;
+            } else {
+                weekdayCommits += count;
+            }
         }
-        const mostActiveDay = Object.entries(dayCount).sort(([, a], [, b]) => b - a)[0];
-        if (mostActiveDay) {
-            result.push({
-                icon: Calendar,
-                title: `Most active on ${mostActiveDay[0]}s`,
-                description: `~${Math.round(mostActiveDay[1] / entries.length * 7)} commits on ${mostActiveDay[0]}s`,
-            });
+
+        if (weekdayCommits > weekendCommits * 2) {
+            result.push({ icon: Sun, text: 'You are consistent during weekdays but less active on weekends.', accent: 'text-amber-400' });
+        } else if (weekendCommits > weekdayCommits) {
+            result.push({ icon: Moon, text: 'You\'re a weekend warrior — most of your coding happens on weekends.', accent: 'text-indigo-400' });
+        } else {
+            result.push({ icon: Calendar, text: 'Your coding is evenly spread across the week. Great balance!', accent: 'text-emerald-400' });
+        }
+
+        // Most active day
+        const sortedDays = Object.entries(dayCount).sort(([, a], [, b]) => b - a);
+        if (sortedDays[0]) {
+            result.push({ icon: Calendar, text: `Your most productive day is ${sortedDays[0][0]}.`, accent: 'text-[var(--color-accent)]' });
         }
 
         // Streak insight
         if (streak >= 7) {
-            result.push({ icon: TrendingUp, title: 'Streak is on fire!', description: `${streak} days strong` });
+            result.push({ icon: TrendingUp, text: `${streak}-day streak — you're building an incredible habit.`, accent: 'text-orange-400' });
         } else if (streak >= 3) {
-            result.push({ icon: TrendingUp, title: 'Streak is growing', description: `${streak} days — keep going` });
+            result.push({ icon: TrendingUp, text: `${streak}-day streak — keep the momentum going.`, accent: 'text-emerald-400' });
         } else {
-            result.push({ icon: TrendingUp, title: 'Build momentum', description: 'Commit daily to grow your streak' });
+            result.push({ icon: TrendingUp, text: 'Try committing daily to build a powerful streak.', accent: 'text-amber-400' });
         }
 
         // Peak day
-        const sortedByCommits = [...entries].sort(([, a], [, b]) => b - a);
-        const peakDay = sortedByCommits[0];
-        if (peakDay) {
-            const peakDate = new Date(peakDay[0]).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            result.push({ icon: Zap, title: `Peak: ${peakDay[1]} commits`, description: `Best day was ${peakDate}` });
+        const sorted = [...entries].sort(([, a], [, b]) => b - a);
+        if (sorted[0]) {
+            const peakDate = new Date(sorted[0][0]).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            result.push({ icon: Zap, text: `Peak productivity: ${sorted[0][1]} commits on ${peakDate}.`, accent: 'text-[var(--color-accent)]' });
         }
 
         return result;
@@ -51,23 +65,18 @@ export default function InsightsSection({ commitsPerDay, streak }: InsightsSecti
     if (insights.length === 0) return null;
 
     return (
-        <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-6">
+        <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-6 h-full">
             <h3 className="mb-4 text-sm font-semibold text-[var(--color-text-primary)]">Insights</h3>
-            <div className="space-y-3">
+            <div className="space-y-2.5">
                 {insights.map((insight, i) => (
                     <div
                         key={i}
-                        className="flex items-start gap-3 rounded-lg bg-[var(--color-bg-secondary)] p-3 transition-colors hover:bg-[var(--color-bg-card-hover)]"
+                        className="flex items-start gap-3 rounded-xl bg-[var(--color-bg-secondary)] px-4 py-3 transition-colors hover:bg-[var(--color-bg-card-hover)]"
                     >
-                        <insight.icon className="mt-0.5 h-4 w-4 text-[var(--color-accent)]" />
-                        <div>
-                            <p className="text-[13px] font-medium text-[var(--color-text-primary)]">
-                                {insight.title}
-                            </p>
-                            <p className="mt-0.5 text-xs text-[var(--color-text-muted)]">
-                                {insight.description}
-                            </p>
-                        </div>
+                        <insight.icon className={`mt-0.5 h-4 w-4 shrink-0 ${insight.accent}`} />
+                        <p className="text-[13px] leading-relaxed text-[var(--color-text-secondary)]">
+                            {insight.text}
+                        </p>
                     </div>
                 ))}
             </div>

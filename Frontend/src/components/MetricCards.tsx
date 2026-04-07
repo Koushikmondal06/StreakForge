@@ -1,94 +1,102 @@
-import { Flame, GitCommit, CalendarDays, type LucideIcon } from 'lucide-react';
+import { GitCommit, CalendarDays, Target, TrendingUp, type LucideIcon } from 'lucide-react';
+import { useMemo } from 'react';
 
-interface MetricCardProps {
-    label: string;
-    value: number | string;
-    icon: LucideIcon;
-    variant?: 'default' | 'streak';
-    subtitle?: string;
+interface MetricCardsProps {
+    totalCommits: number;
+    activeDays: number;
+    commitsPerDay: Record<string, number>;
 }
 
-function MetricCard({ label, value, icon: Icon, variant = 'default', subtitle }: MetricCardProps) {
-    const isStreak = variant === 'streak';
+interface StatCardProps {
+    label: string;
+    value: string | number;
+    subtitle?: string;
+    icon: LucideIcon;
+    accent?: string;
+}
 
+function StatCard({ label, value, subtitle, icon: Icon, accent }: StatCardProps) {
     return (
-        <div
-            className={`relative overflow-hidden rounded-2xl border p-6 transition-all duration-200 hover:border-[var(--color-border-hover)] ${isStreak
-                    ? 'border-orange-500/20 bg-gradient-to-br from-orange-500/[0.06] to-[var(--color-bg-card)]'
-                    : 'border-[var(--color-border)] bg-[var(--color-bg-card)]'
-                }`}
-            style={isStreak ? { boxShadow: '0 0 40px rgba(249, 115, 22, 0.06)' } : {}}
-        >
-            {isStreak && (
-                <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-orange-500/10 blur-2xl" />
-            )}
-
-            <div className="flex items-start justify-between">
-                <div>
-                    <p className="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
+        <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-4 sm:p-5 transition-all duration-200 hover:border-[var(--color-border-hover)] hover:bg-[var(--color-bg-card-hover)] group overflow-hidden">
+            <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                    <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)] truncate">
                         {label}
                     </p>
-                    <div className="mt-3 flex items-baseline gap-2">
-                        <span
-                            className="text-3xl font-bold tracking-tight"
-                            style={{
-                                fontFamily: 'var(--font-mono)',
-                                color: isStreak ? '#f97316' : 'var(--color-text-primary)',
-                            }}
-                        >
-                            {value}
-                        </span>
-                        {isStreak && (
-                            <span className="text-xl" style={{ animation: 'fire-glow 2s ease-in-out infinite' }}>
-                                🔥
-                            </span>
-                        )}
-                    </div>
+                    <p className="mt-2 text-xl sm:text-2xl font-bold tracking-tight truncate" style={{ fontFamily: 'var(--font-mono)', color: accent || 'var(--color-text-primary)' }}>
+                        {value}
+                    </p>
                     {subtitle && (
-                        <p className="mt-2 text-xs text-[var(--color-text-muted)]">{subtitle}</p>
+                        <p className="mt-1 text-[11px] text-[var(--color-text-muted)] truncate">{subtitle}</p>
                     )}
                 </div>
-                <div
-                    className={`rounded-lg p-2.5 ${isStreak ? 'bg-orange-500/10' : 'bg-[var(--color-accent-glow)]'
-                        }`}
-                >
-                    <Icon
-                        className="h-4 w-4"
-                        style={{ color: isStreak ? '#f97316' : 'var(--color-accent)' }}
-                    />
+                <div className="rounded-lg p-2 bg-white/[0.04] group-hover:bg-white/[0.06] transition-colors shrink-0">
+                    <Icon className="h-4 w-4" style={{ color: accent || 'var(--color-text-muted)' }} />
                 </div>
             </div>
         </div>
     );
 }
 
-interface MetricCardsProps {
-    streak: number;
-    totalCommits: number;
-    activeDays: number;
-}
+export default function MetricCards({ totalCommits, activeDays, commitsPerDay }: MetricCardsProps) {
+    const stats = useMemo(() => {
+        const entries = Object.entries(commitsPerDay);
+        const totalDaysTracked = entries.length;
 
-export default function MetricCards({ streak, totalCommits, activeDays }: MetricCardsProps) {
+        const today = new Date();
+        const last30 = [];
+        for (let i = 0; i < 30; i++) {
+            const d = new Date(today);
+            d.setDate(d.getDate() - i);
+            const key = d.toISOString().split('T')[0];
+            last30.push(key);
+        }
+        const activeLast30 = last30.filter(d => commitsPerDay[d] && commitsPerDay[d] > 0).length;
+        const consistencyScore = Math.round((activeLast30 / 30) * 100);
+
+        let bestDayDate = '';
+        let bestDayCount = 0;
+        for (const [date, count] of entries) {
+            if (count > bestDayCount) {
+                bestDayCount = count;
+                bestDayDate = date;
+            }
+        }
+        const bestDayFormatted = bestDayDate
+            ? new Date(bestDayDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            : '—';
+
+        return { consistencyScore, bestDayFormatted, bestDayCount, totalDaysTracked };
+    }, [commitsPerDay]);
+
     return (
-        <div className="grid grid-cols-3 gap-4">
-            <MetricCard
-                label="Current Streak"
-                value={streak}
-                icon={Flame}
-                variant="streak"
-                subtitle={streak > 0 ? `${streak} consecutive days` : 'Start your streak today'}
-            />
-            <MetricCard
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <StatCard
                 label="Total Commits"
                 value={totalCommits.toLocaleString()}
-                icon={GitCommit}
                 subtitle="Across all repos"
+                icon={GitCommit}
+                accent="var(--color-accent)"
             />
-            <MetricCard
+            <StatCard
                 label="Active Days"
                 value={activeDays}
+                subtitle={`of ${stats.totalDaysTracked} tracked`}
                 icon={CalendarDays}
-                subtitle="Days with commits"
+            />
+            <StatCard
+                label="Consistency"
+                value={`${stats.consistencyScore}%`}
+                subtitle="Last 30 days"
+                icon={Target}
+                accent={stats.consistencyScore >= 70 ? 'var(--color-success)' : stats.consistencyScore >= 40 ? '#eab308' : '#ef4444'}
+            />
+            <StatCard
+                label="Best Day"
+                value={`${stats.bestDayCount}`}
+                subtitle={stats.bestDayFormatted}
+                icon={TrendingUp}
+                accent="var(--color-accent)"
             />
         </div>
     );
