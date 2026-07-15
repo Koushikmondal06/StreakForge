@@ -15,68 +15,64 @@ function GithubIcon({ className }: { className?: string }) {
 export default function LoginPage() {
     return (
         <AuroraBackground
-            starCount={80}
+            starCount={60}
             gradientColors={[
-                'var(--aurora-color1, rgba(99,102,241,0.2))',
-                'var(--aurora-color2, rgba(139,92,246,0.2))',
+                'var(--aurora-color1, rgba(99,102,241,0.15))',
+                'var(--aurora-color2, rgba(139,92,246,0.12))',
             ]}
-            pulseDuration={8}
+            pulseDuration={10}
         >
             <motion.div
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, ease: 'easeOut' }}
-                className="flex flex-col items-center gap-8 px-4"
+                transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                className="flex flex-col items-center gap-10 px-4"
             >
-                {/* Logo */}
                 <motion.div
-                    initial={{ scale: 0.5, opacity: 0 }}
+                    initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.6, delay: 0.2 }}
+                    transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
                     className="flex items-center gap-3"
                 >
-                    <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-gradient-to-br from-violet-600 to-indigo-600 shadow-2xl shadow-violet-600/30">
-                        <Flame className="h-8 w-8 text-white" />
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/25">
+                        <Flame className="h-6 w-6 text-white" />
                     </div>
                 </motion.div>
 
-                {/* Title */}
-                <div className="text-center">
+                <div className="text-center space-y-4">
                     <h1 className="text-5xl font-bold tracking-tight text-white md:text-7xl">
                         Streak
-                        <span className="bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
+                        <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
                             Forge
                         </span>
                     </h1>
-                    <p className="mt-4 max-w-md text-lg text-gray-400">
-                        Track your coding habits. Build streaks.<br />
+                    <p className="max-w-md text-base text-zinc-400 leading-relaxed">
+                        Track your coding habits. Build streaks.
                         Forge unstoppable developer momentum.
                     </p>
                 </div>
 
-                {/* CTA Button */}
                 <motion.a
                     href={AUTH_URL}
-                    initial={{ opacity: 0, y: 10 }}
+                    initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.5 }}
-                    whileHover={{ scale: 1.03 }}
+                    transition={{ duration: 0.5, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                    whileHover={{ scale: 1.02, boxShadow: '0 0 40px rgba(99, 102, 241, 0.3)' }}
                     whileTap={{ scale: 0.98 }}
-                    className="group flex items-center gap-3 rounded-3xl bg-white px-8 py-4 text-base font-semibold text-gray-900 shadow-2xl shadow-white/10 transition-all hover:shadow-white/20"
+                    className="group flex items-center gap-3 rounded-full bg-white px-8 py-3.5 text-sm font-medium text-zinc-900 shadow-xl shadow-white/5 transition-all hover:shadow-white/10"
                 >
-                    <GithubIcon className="h-5 w-5" />
+                    <GithubIcon className="h-4.5 w-4.5" />
                     Sign in with GitHub
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </motion.a>
 
-                {/* Subtext */}
                 <motion.p
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ delay: 0.8 }}
-                    className="text-sm text-gray-500"
+                    transition={{ delay: 0.7 }}
+                    className="text-xs text-zinc-600"
                 >
-                    Powered by GitHub • Free & Open Source
+                    Powered by GitHub
                 </motion.p>
             </motion.div>
         </AuroraBackground>

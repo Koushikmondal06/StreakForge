@@ -1,6 +1,12 @@
-import { ChevronDown } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
-import type { Repo } from '@/services/api';
+import { ChevronDown, Check } from 'lucide-react';
+
+interface Repo {
+    id: number;
+    name: string;
+    full_name: string;
+    owner: { login: string };
+}
 
 interface RepoSelectorProps {
     repos: Repo[];
@@ -9,58 +15,56 @@ interface RepoSelectorProps {
 }
 
 export default function RepoSelector({ repos, selectedRepo, onSelect }: RepoSelectorProps) {
-    const [isOpen, setIsOpen] = useState(false);
-    const dropdownRef = useRef<HTMLDivElement>(null);
+    const [open, setOpen] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        function handleClickOutside(e: MouseEvent) {
-            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-                setIsOpen(false);
-            }
-        }
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        const handler = (e: MouseEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
     }, []);
 
-    const displayName = selectedRepo?.split('/')[1] ?? 'All Repositories';
+    const label = selectedRepo || 'All Repositories';
 
     return (
-        <div ref={dropdownRef} className="relative">
+        <div ref={ref} className="relative">
             <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] px-3 py-2 text-[13px] font-medium text-[var(--color-text-primary)] transition-colors hover:border-[var(--color-border-hover)]"
+                onClick={() => setOpen(!open)}
+                className="flex items-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] px-3.5 py-2 text-[13px] font-medium text-[var(--color-text-secondary)] transition-all duration-200 hover:border-[var(--color-border-hover)] hover:text-[var(--color-text-primary)]"
             >
-                <span className="max-w-[160px] truncate">{displayName}</span>
-                <ChevronDown className={`h-3.5 w-3.5 text-[var(--color-text-muted)] transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                <span className="max-w-[140px] truncate">{label}</span>
+                <ChevronDown className={`h-3.5 w-3.5 text-[var(--color-text-muted)] transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
             </button>
 
-            {isOpen && (
-                <div className="absolute right-0 z-50 mt-1.5 max-h-64 w-56 overflow-auto rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] p-1 shadow-xl">
-                    <button
-                        onClick={() => { onSelect(null); setIsOpen(false); }}
-                        className={`w-full rounded-md px-3 py-2 text-left text-[13px] transition-colors ${!selectedRepo
-                                ? 'bg-white/[0.06] text-white'
-                                : 'text-[var(--color-text-secondary)] hover:bg-white/[0.04]'
+            {open && (
+                <div className="absolute right-0 top-full z-50 mt-1.5 w-64 overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-elevated)] shadow-2xl shadow-black/40">
+                    <div className="max-h-64 overflow-y-auto p-1">
+                        <button
+                            onClick={() => { onSelect(null); setOpen(false); }}
+                            className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-[13px] transition-colors duration-150 ${!selectedRepo
+                                ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent-hover)]'
+                                : 'text-[var(--color-text-secondary)] hover:bg-white/[0.04] hover:text-[var(--color-text-primary)]'
                             }`}
-                    >
-                        All Repositories
-                    </button>
-                    {repos.map((repo) => {
-                        const fullName = `${repo.owner.login}/${repo.name}`;
-                        const isSelected = selectedRepo === fullName;
-                        return (
+                        >
+                            <span className="font-medium">All Repositories</span>
+                            {!selectedRepo && <Check className="h-3.5 w-3.5" />}
+                        </button>
+                        {repos.map(repo => (
                             <button
                                 key={repo.id}
-                                onClick={() => { onSelect(fullName); setIsOpen(false); }}
-                                className={`w-full rounded-md px-3 py-2 text-left text-[13px] transition-colors ${isSelected
-                                        ? 'bg-white/[0.06] text-white'
-                                        : 'text-[var(--color-text-secondary)] hover:bg-white/[0.04]'
-                                    }`}
+                                onClick={() => { onSelect(repo.full_name); setOpen(false); }}
+                                className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-[13px] transition-colors duration-150 ${selectedRepo === repo.full_name
+                                    ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent-hover)]'
+                                    : 'text-[var(--color-text-secondary)] hover:bg-white/[0.04] hover:text-[var(--color-text-primary)]'
+                                }`}
                             >
-                                {repo.name}
+                                <span className="truncate font-medium">{repo.name}</span>
+                                {selectedRepo === repo.full_name && <Check className="h-3.5 w-3.5 shrink-0" />}
                             </button>
-                        );
-                    })}
+                        ))}
+                    </div>
                 </div>
             )}
         </div>

@@ -1,145 +1,115 @@
 import { useMemo } from 'react';
-import {
-    AreaChart,
-    Area,
-    XAxis,
-    YAxis,
-    Tooltip,
-    ResponsiveContainer,
-    ReferenceDot,
-} from 'recharts';
-import { Zap } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceDot } from 'recharts';
+import { motion } from 'framer-motion';
 
 interface ActivityChartProps {
     commitsPerDay: Record<string, number>;
 }
 
+function formatDate(dateStr: string) {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number }>; label?: string }) {
+    if (!active || !payload?.length) return null;
+    return (
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3.5 py-2.5 shadow-xl">
+            <p className="text-[11px] font-medium text-[var(--color-text-muted)]">{label}</p>
+            <p className="text-sm font-bold font-[var(--font-mono)] text-[var(--color-accent-hover)]">
+                {payload[0].value} commits
+            </p>
+        </div>
+    );
+}
+
 export default function ActivityChart({ commitsPerDay }: ActivityChartProps) {
-    const { chartData, peakDay } = useMemo(() => {
+    const { data, peakDay, totalCommits } = useMemo(() => {
         const entries = Object.entries(commitsPerDay)
-            .sort(([a], [b]) => a.localeCompare(b))
-            .map(([date, count]) => ({
-                date,
-                commits: count,
-                displayDate: new Date(date).toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                }),
-            }));
+            .map(([date, count]) => ({ date: formatDate(date), rawDate: date, commits: count }))
+            .sort((a, b) => new Date(a.rawDate).getTime() - new Date(b.rawDate).getTime());
 
-        let peak = entries[0] || null;
-        for (const e of entries) {
-            if (peak && e.commits > peak.commits) peak = e;
-        }
+        const peak = entries.reduce((max, e) => e.commits > max.commits ? e : max, entries[0]);
+        const total = entries.reduce((sum, e) => sum + e.commits, 0);
 
-        return { chartData: entries, peakDay: peak };
+        return { data: entries, peakDay: peak, totalCommits: total };
     }, [commitsPerDay]);
 
-    if (chartData.length === 0) {
-        return (
-            <div className="flex h-full min-h-[280px] items-center justify-center rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)]">
-                <p className="text-sm text-[var(--color-text-muted)]">No commit data available</p>
-            </div>
-        );
-    }
-
     return (
-        <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-6 h-full">
+        <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-5 sm:p-6"
+        >
             <div className="mb-5 flex items-center justify-between">
-                <div>
-                    <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">
-                        Activity Overview
-                    </h3>
-                    <p className="mt-0.5 text-[11px] text-[var(--color-text-muted)]">
-                        Commits per day
-                    </p>
-                </div>
-                <div className="flex items-center gap-3">
+                <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Activity</h3>
+                <div className="flex items-center gap-3 text-[11px]">
                     {peakDay && (
-                        <div className="flex items-center gap-1.5 rounded-md bg-orange-500/10 px-2.5 py-1">
-                            <Zap className="h-3 w-3 text-orange-400" />
-                            <span className="text-[11px] font-medium text-orange-400">
-                                Peak: {peakDay.commits} on {peakDay.displayDate}
-                            </span>
-                        </div>
-                    )}
-                    <div className="flex items-center gap-1.5 rounded-md bg-[var(--color-accent-glow)] px-2.5 py-1">
-                        <div className="h-1.5 w-1.5 rounded-full bg-[var(--color-accent)]" />
-                        <span className="text-[11px] font-medium text-[var(--color-accent)]">
-                            {chartData.reduce((s, d) => s + d.commits, 0)} total
+                        <span className="flex items-center gap-1 rounded-lg bg-orange-500/10 px-2 py-1 text-orange-400">
+                            <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
+                            Peak: {peakDay.commits}
                         </span>
-                    </div>
+                    )}
+                    <span className="flex items-center gap-1 rounded-lg bg-[var(--color-accent-subtle)] px-2 py-1 text-[var(--color-accent-hover)]">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-accent)]" />
+                        {totalCommits} total
+                    </span>
                 </div>
             </div>
 
-            <ResponsiveContainer width="100%" height={240}>
-                <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-                    <defs>
-                        <linearGradient id="commitGradFill" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="var(--color-accent)" stopOpacity={0.25} />
-                            <stop offset="100%" stopColor="var(--color-accent)" stopOpacity={0} />
-                        </linearGradient>
-                    </defs>
-                    <XAxis
-                        dataKey="displayDate"
-                        stroke="var(--color-text-muted)"
-                        fontSize={10}
-                        fontFamily="var(--font-mono)"
-                        tickLine={false}
-                        axisLine={false}
-                        interval="preserveStartEnd"
-                    />
-                    <YAxis
-                        stroke="var(--color-text-muted)"
-                        fontSize={10}
-                        fontFamily="var(--font-mono)"
-                        tickLine={false}
-                        axisLine={false}
-                        allowDecimals={false}
-                    />
-                    <Tooltip
-                        contentStyle={{
-                            background: '#111118',
-                            border: '1px solid var(--color-border)',
-                            borderRadius: '10px',
-                            padding: '10px 14px',
-                            fontSize: '12px',
-                            color: 'var(--color-text-primary)',
-                            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-                        }}
-                        labelStyle={{ color: 'var(--color-text-muted)', fontSize: '11px', marginBottom: '4px' }}
-                        itemStyle={{ color: 'var(--color-accent)' }}
-                        cursor={{ stroke: 'var(--color-border-hover)', strokeWidth: 1 }}
-                    />
-                    <Area
-                        type="monotone"
-                        dataKey="commits"
-                        stroke="var(--color-accent)"
-                        strokeWidth={2}
-                        fill="url(#commitGradFill)"
-                        dot={false}
-                        activeDot={{
-                            r: 5,
-                            fill: 'var(--color-accent)',
-                            stroke: 'var(--color-bg-card)',
-                            strokeWidth: 2,
-                        }}
-                        animationDuration={1200}
-                        animationEasing="ease-out"
-                    />
-                    {/* Peak marker */}
-                    {peakDay && (
-                        <ReferenceDot
-                            x={peakDay.displayDate}
-                            y={peakDay.commits}
-                            r={6}
-                            fill="#f97316"
-                            stroke="var(--color-bg-card)"
-                            strokeWidth={2}
+            {data.length > 0 ? (
+                <ResponsiveContainer width="100%" height={220}>
+                    <AreaChart data={data} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                        <defs>
+                            <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="var(--color-accent)" stopOpacity={0.3} />
+                                <stop offset="100%" stopColor="var(--color-accent)" stopOpacity={0} />
+                            </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
+                        <XAxis
+                            dataKey="date"
+                            tick={{ fill: 'var(--color-text-muted)', fontSize: 10 }}
+                            axisLine={false}
+                            tickLine={false}
+                            interval="preserveStartEnd"
                         />
-                    )}
-                </AreaChart>
-            </ResponsiveContainer>
-        </div>
+                        <YAxis
+                            tick={{ fill: 'var(--color-text-muted)', fontSize: 10 }}
+                            axisLine={false}
+                            tickLine={false}
+                            allowDecimals={false}
+                        />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Area
+                            type="monotone"
+                            dataKey="commits"
+                            stroke="var(--color-accent)"
+                            strokeWidth={2}
+                            fill="url(#chartGrad)"
+                            animationDuration={1200}
+                            animationEasing="ease-out"
+                            dot={false}
+                            activeDot={{ r: 4, strokeWidth: 2, stroke: 'var(--color-accent)', fill: 'var(--color-bg-card)' }}
+                        />
+                        {peakDay && (
+                            <ReferenceDot
+                                x={peakDay.date}
+                                y={peakDay.commits}
+                                r={5}
+                                fill="#f97316"
+                                stroke="var(--color-bg-card)"
+                                strokeWidth={2}
+                            />
+                        )}
+                    </AreaChart>
+                </ResponsiveContainer>
+            ) : (
+                <div className="flex h-[220px] items-center justify-center text-sm text-[var(--color-text-muted)]">
+                    No commit data available
+                </div>
+            )}
+        </motion.div>
     );
 }

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import Sidebar, { type TabId } from '@/components/Sidebar';
@@ -15,24 +15,35 @@ export default function DashboardPage() {
     const { token, isAuthenticated, logout } = useAuth();
     const { data, repos, loading, error, selectedRepo, selectRepo, refetch } = useAnalytics(token);
     const [activeTab, setActiveTab] = useState<TabId>('dashboard');
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (activeTab === 'assistant') {
+            navigate('/assistant');
+        }
+    }, [activeTab, navigate]);
 
     if (!isAuthenticated) {
         return <Navigate to="/" replace />;
+    }
+
+    if (activeTab === 'assistant') {
+        return null;
     }
 
     const activeDays = data ? Object.keys(data.commitsPerDay).length : 0;
 
     const renderReposTab = () => (
         <div>
-            <h1 className="text-xl font-semibold text-[var(--color-text-primary)] mb-6">Repositories</h1>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <h1 className="text-lg font-semibold text-[var(--color-text-primary)] mb-5">Repositories</h1>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {repos.map(repo => (
-                    <div key={repo.id} className="p-4 sm:p-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] transition-colors hover:border-[var(--color-border-hover)] hover:bg-[var(--color-bg-card-hover)]">
+                    <div key={repo.id} className="group rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-5 transition-all duration-200 hover:border-[var(--color-border-hover)] hover:bg-[var(--color-bg-card-hover)]">
                         <h3 className="text-sm font-semibold text-[var(--color-text-primary)] truncate">{repo.name}</h3>
-                        {repo.description && <p className="mt-1.5 text-xs text-[var(--color-text-muted)] line-clamp-2">{repo.description}</p>}
+                        {repo.description && <p className="mt-1.5 text-xs text-[var(--color-text-muted)] line-clamp-2 leading-relaxed">{repo.description}</p>}
                         <div className="mt-3 flex gap-3 text-[11px] text-[var(--color-text-muted)]">
-                            <span>⭐ {repo.stargazers_count}</span>
-                            {repo.language && <span>{repo.language}</span>}
+                            {repo.stargazers_count > 0 && <span className="flex items-center gap-1">⭐ {repo.stargazers_count}</span>}
+                            {repo.language && <span className="rounded-md bg-[var(--color-bg-secondary)] px-1.5 py-0.5">{repo.language}</span>}
                         </div>
                     </div>
                 ))}
@@ -42,47 +53,38 @@ export default function DashboardPage() {
 
     const renderInsightsTab = () => (
         <div>
-            <h1 className="text-xl font-semibold text-[var(--color-text-primary)] mb-6">AI Insights</h1>
+            <h1 className="text-lg font-semibold text-[var(--color-text-primary)] mb-5">AI Insights</h1>
             {data && <AiDashboardAnalysis repos={repos} analytics={data} />}
         </div>
     );
 
     const renderSettingsTab = () => (
         <div className="max-w-lg">
-            <h1 className="text-xl font-semibold text-[var(--color-text-primary)] mb-6">Settings</h1>
-
-            <div className="space-y-4">
-                <div className="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)]">
-                    <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Account</h2>
-                    <p className="text-xs text-[var(--color-text-muted)] mb-4">
-                        Connected as GitHub user
-                    </p>
+            <h1 className="text-lg font-semibold text-[var(--color-text-primary)] mb-5">Settings</h1>
+            <div className="space-y-3">
+                <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-5">
+                    <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-2">Account</h2>
+                    <p className="text-xs text-[var(--color-text-muted)] mb-3">Connected to GitHub</p>
                     <button
                         onClick={logout}
-                        className="px-4 py-2 rounded-lg bg-red-500/10 text-sm text-red-400 hover:bg-red-500/20 transition-colors border border-red-500/20"
+                        className="rounded-xl bg-red-500/10 border border-red-500/10 px-4 py-2 text-xs font-medium text-red-400 transition-all duration-200 hover:bg-red-500/15"
                     >
-                        Logout
+                        Sign Out
                     </button>
                 </div>
-
-                <div className="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)]">
-                    <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Data Cache</h2>
-                    <p className="text-xs text-[var(--color-text-muted)] mb-4">
-                        Your GitHub data is cached for 1 hour to improve performance.
-                    </p>
+                <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-5">
+                    <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-2">Data Cache</h2>
+                    <p className="text-xs text-[var(--color-text-muted)] mb-3">GitHub data cached for 1 hour.</p>
                     <button
                         onClick={refetch}
-                        className="px-4 py-2 rounded-lg bg-white/[0.06] text-sm text-[var(--color-text-primary)] hover:bg-white/[0.1] transition-colors border border-[var(--color-border)]"
+                        className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-4 py-2 text-xs font-medium text-[var(--color-text-secondary)] transition-all duration-200 hover:border-[var(--color-border-hover)] hover:text-[var(--color-text-primary)]"
                     >
                         Refresh Data
                     </button>
                 </div>
-
-                <div className="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)]">
-                    <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">About</h2>
-                    <p className="text-xs text-[var(--color-text-muted)]">
-                        StreakForge v1.0.0 - Track your coding habits. Build streaks. Forge unstoppable developer momentum.
-                    </p>
+                <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-5">
+                    <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-2">About</h2>
+                    <p className="text-xs text-[var(--color-text-muted)]">StreakForge v1.0.0</p>
                 </div>
             </div>
         </div>
@@ -92,9 +94,8 @@ export default function DashboardPage() {
         <div className="min-h-screen bg-[var(--color-bg-primary)]">
             <Sidebar activeTab={activeTab} onTabChange={setActiveTab} onLogout={logout} />
 
-            {/* Main: margin-left only on lg+ where sidebar is visible */}
-            <main className="min-h-screen lg:ml-[240px]">
-                <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-[1200px]">
+            <main className="min-h-screen lg:ml-[220px]">
+                <div className="px-4 sm:px-6 lg:px-8 py-5 max-w-[1100px]">
 
                     {activeTab === 'repos' && renderReposTab()}
                     {activeTab === 'insights' && renderInsightsTab()}
@@ -102,11 +103,10 @@ export default function DashboardPage() {
 
                     {activeTab === 'dashboard' && (
                         <div className="pt-10 lg:pt-0">
-                            {/* Header */}
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
                                 <div>
-                                    <h1 className="text-xl font-semibold text-[var(--color-text-primary)]">Dashboard</h1>
-                                    <p className="mt-0.5 text-xs text-[var(--color-text-muted)]">Your GitHub activity at a glance</p>
+                                    <h1 className="text-lg font-semibold text-[var(--color-text-primary)]">Dashboard</h1>
+                                    <p className="mt-0.5 text-xs text-[var(--color-text-muted)]">Your coding activity at a glance</p>
                                 </div>
                                 <RepoSelector repos={repos} selectedRepo={selectedRepo} onSelect={selectRepo} />
                             </div>
@@ -116,19 +116,16 @@ export default function DashboardPage() {
                             ) : error ? (
                                 <ErrorDisplay message={error} onRetry={refetch} />
                             ) : data ? (
-                                <div className="flex flex-col gap-4">
-                                    {/* Row 1: Streak Hero */}
+                                <div className="flex flex-col gap-3">
                                     <StreakHero streak={data.streak} />
 
-                                    {/* Row 2: Metric Cards */}
                                     <MetricCards
                                         totalCommits={data.totalCommits}
                                         activeDays={activeDays}
                                         commitsPerDay={data.commitsPerDay}
                                     />
 
-                                    {/* Row 3: Chart + Insights — stack on small screens */}
-                                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+                                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
                                         <div className="lg:col-span-3">
                                             <ActivityChart commitsPerDay={data.commitsPerDay} />
                                         </div>
@@ -137,7 +134,6 @@ export default function DashboardPage() {
                                         </div>
                                     </div>
 
-                                    {/* Row 4: AI Analysis */}
                                     <AiDashboardAnalysis repos={repos} analytics={data} />
                                 </div>
                             ) : null}
