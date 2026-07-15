@@ -4,6 +4,8 @@ import { getUser } from "../services/githubService";
 
 const router = express.Router();
 
+const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+
 router.get("/github", (req: Request, res: Response) => {
     const url = `https://github.com/login/oauth/authorize?client_id=${process.env.CLIENT_ID}&scope=repo user`;
     res.redirect(url);
@@ -34,8 +36,7 @@ router.get("/github/callback", async (req: Request, res: Response) => {
         const access_token = tokenRes.data.access_token;
         const user = await getUser(access_token);
 
-
-        res.redirect(`http://localhost:5173/dashboard?token=${access_token}`);
+        res.redirect(`${frontendUrl}/dashboard?token=${access_token}`);
 
     } catch (error) {
         console.error(error);

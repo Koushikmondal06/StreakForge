@@ -1,7 +1,7 @@
-
 import axios from "axios";
+import { GitHubUser, GitHubRepo, GitHubCommit, AnalyticsData } from "../types";
 
-export const getUser = async (token: string) => {
+export const getUser = async (token: string): Promise<GitHubUser> => {
     const res = await axios.get("https://api.github.com/user", {
         headers: {
             Authorization: `Bearer ${token}`,
@@ -10,7 +10,8 @@ export const getUser = async (token: string) => {
 
     return res.data;
 };
-export const getRepos = async (token: string) => {
+
+export const getRepos = async (token: string): Promise<GitHubRepo[]> => {
     const res = await axios.get("https://api.github.com/user/repos", {
         headers: {
             Authorization: `Bearer ${token}`,
@@ -19,11 +20,12 @@ export const getRepos = async (token: string) => {
 
     return res.data;
 };
+
 export const getCommits = async (
     token: string,
     owner: string,
     repo: string
-) => {
+): Promise<GitHubCommit[]> => {
     const res = await axios.get(
         `https://api.github.com/repos/${owner}/${repo}/commits`,
         {
@@ -35,7 +37,8 @@ export const getCommits = async (
 
     return res.data;
 };
-export const processCommits = (commits: any[]) => {
+
+export const processCommits = (commits: GitHubCommit[]): Record<string, number> => {
     const map: Record<string, number> = {};
 
     for (const c of commits) {
@@ -48,7 +51,7 @@ export const processCommits = (commits: any[]) => {
     return map;
 };
 
-export const calculateStreak = (data: Record<string, number>) => {
+export const calculateStreak = (data: Record<string, number>): number => {
     const dates = Object.keys(data).sort().reverse();
 
     let streak = 0;
@@ -65,15 +68,12 @@ export const calculateStreak = (data: Record<string, number>) => {
 };
 
 export const syncUserGithubData = async (token: string) => {
-    // 1. Get user to find username
     const user = await getUser(token);
     const username = user.login;
 
-    // 2. Get repos
     const repos = await getRepos(token);
 
-    // 3. Get analytics for top 5 repos
-    let allCommits: any[] = [];
+    let allCommits: GitHubCommit[] = [];
     for (const r of repos.slice(0, 5)) {
         try {
             const commits = await getCommits(token, r.owner.login, r.name);
@@ -86,7 +86,7 @@ export const syncUserGithubData = async (token: string) => {
     const processed = processCommits(allCommits);
     const streak = calculateStreak(processed);
 
-    const analytics = {
+    const analytics: AnalyticsData = {
         streak,
         totalCommits: allCommits.length,
         commitsPerDay: processed,

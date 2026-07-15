@@ -1,9 +1,26 @@
 import { useState } from 'react';
 import { Sparkles, Brain, ArrowRight } from 'lucide-react';
+import { API_BASE } from '@/services/api';
+
+interface Repo {
+    name: string;
+    language: string | null;
+    stargazers_count: number;
+    forks_count?: number;
+    updated_at?: string;
+    pushed_at?: string;
+    size?: number;
+}
+
+interface Analytics {
+    streak: number;
+    totalCommits: number;
+    commitsPerDay: Record<string, number>;
+}
 
 interface AiDashboardAnalysisProps {
-    repos: any[];
-    analytics: any;
+    repos: Repo[];
+    analytics: Analytics;
     username?: string;
 }
 
@@ -16,7 +33,7 @@ export default function AiDashboardAnalysis({ repos, analytics, username }: AiDa
         setLoading(true);
         setError(null);
         try {
-            const minimalRepos = repos.map((r: any) => ({
+            const minimalRepos = repos.map((r) => ({
                 name: r.name,
                 language: r.language,
                 stargazers_count: r.stargazers_count,
@@ -25,7 +42,7 @@ export default function AiDashboardAnalysis({ repos, analytics, username }: AiDa
                 size: r.size
             }));
 
-            const response = await fetch('http://localhost:5000/ai/dashboard-analysis', {
+            const response = await fetch(`${API_BASE}/ai/dashboard-analysis`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ repos: minimalRepos, analytics, username }),
@@ -35,8 +52,8 @@ export default function AiDashboardAnalysis({ repos, analytics, username }: AiDa
 
             const data = await response.json();
             setAnalysis(data.response);
-        } catch (err: any) {
-            setError(err.message || 'An error occurred.');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'An error occurred.');
         } finally {
             setLoading(false);
         }

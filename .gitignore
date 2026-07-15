@@ -18,6 +18,16 @@ build/
 # TypeScript
 *.tsbuildinfo
 
+# Backend compiled files
+Backend/*.js
+Backend/*.d.ts
+Backend/*.js.map
+Backend/*.d.ts.map
+Backend/**/*.js
+Backend/**/*.d.ts
+Backend/**/*.js.map
+Backend/**/*.d.ts.map
+
 # OS files
 .DS_Store
 Thumbs.db

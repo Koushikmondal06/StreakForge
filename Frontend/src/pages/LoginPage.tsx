@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Flame } from 'lucide-react';
 import AuroraBackground from '@/components/ui/aurora-background';
 
-const AUTH_URL = 'http://localhost:5000/auth/github';
+const AUTH_URL = `${import.meta.env.VITE_API_BASE || 'http://localhost:5000'}/auth/github`;
 
 function GithubIcon({ className }: { className?: string }) {
     return (

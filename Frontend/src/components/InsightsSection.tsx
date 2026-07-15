@@ -1,9 +1,15 @@
 import { useMemo } from 'react';
-import { TrendingUp, Calendar, Zap, Moon, Sun } from 'lucide-react';
+import { TrendingUp, Calendar, Zap, Moon, Sun, type LucideIcon } from 'lucide-react';
 
 interface InsightsSectionProps {
     commitsPerDay: Record<string, number>;
     streak: number;
+}
+
+interface Insight {
+    icon: LucideIcon;
+    text: string;
+    accent: string;
 }
 
 export default function InsightsSection({ commitsPerDay, streak }: InsightsSectionProps) {
@@ -11,7 +17,7 @@ export default function InsightsSection({ commitsPerDay, streak }: InsightsSecti
         const entries = Object.entries(commitsPerDay);
         if (entries.length === 0) return [];
 
-        const result: { icon: any; text: string; accent: string }[] = [];
+        const result: Insight[] = [];
 
         // Weekday vs Weekend analysis
         let weekdayCommits = 0;

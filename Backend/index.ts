@@ -9,8 +9,15 @@ import geminiRoutes from "./routes/gemini";
 
 const app = express();
 
+const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: frontendUrl,
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+}));
 app.use(express.json({ limit: "10mb" }));
 
 // Routes

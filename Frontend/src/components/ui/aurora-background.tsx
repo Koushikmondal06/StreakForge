@@ -1,6 +1,11 @@
 "use client"
-import React from "react"
+import React, { useMemo } from "react"
 import { motion } from "framer-motion"
+
+function seededRandom(seed: number): number {
+    const x = Math.sin(seed * 9301 + 49297) * 49297
+    return x - Math.floor(x)
+}
 
 export interface AuroraBackgroundProps {
     className?: string
@@ -9,6 +14,14 @@ export interface AuroraBackgroundProps {
     gradientColors?: [string, string]
     pulseDuration?: number
     ariaLabel?: string
+}
+
+interface StarData {
+    x: string
+    y: string
+    opacityMax: number
+    duration: number
+    delay: number
 }
 
 const AuroraBackground: React.FC<AuroraBackgroundProps> = ({
@@ -23,6 +36,16 @@ const AuroraBackground: React.FC<AuroraBackgroundProps> = ({
     ariaLabel = "Animated aurora background",
 }) => {
     const [colorA, colorB] = gradientColors
+
+    const stars: StarData[] = useMemo(() => {
+        return Array.from({ length: starCount }).map((_, i) => ({
+            x: `${seededRandom(i * 5 + 1) * 100}vw`,
+            y: `${seededRandom(i * 5 + 2) * 100}vh`,
+            opacityMax: seededRandom(i * 5 + 3) * 0.8,
+            duration: seededRandom(i * 5 + 4) * 3 + 2,
+            delay: seededRandom(i * 5 + 5) * 5,
+        }))
+    }, [starCount])
 
     return (
         <div
@@ -93,22 +116,22 @@ const AuroraBackground: React.FC<AuroraBackgroundProps> = ({
                     />
                 </motion.div>
 
-                {Array.from({ length: starCount }).map((_, i) => (
+                {stars.map((star, i) => (
                     <motion.div
                         key={i}
                         className="absolute w-0.5 h-0.5 bg-white rounded-full"
                         initial={{
-                            x: `${Math.random() * 100}vw`,
-                            y: `${Math.random() * 100}vh`,
+                            x: star.x,
+                            y: star.y,
                             opacity: 0,
                         }}
                         animate={{
-                            opacity: [0, Math.random() * 0.8, 0],
+                            opacity: [0, star.opacityMax, 0],
                         }}
                         transition={{
-                            duration: Math.random() * 3 + 2,
+                            duration: star.duration,
                             repeat: Infinity,
-                            delay: Math.random() * 5,
+                            delay: star.delay,
                         }}
                     />
                 ))}

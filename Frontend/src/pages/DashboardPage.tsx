@@ -50,11 +50,40 @@ export default function DashboardPage() {
     const renderSettingsTab = () => (
         <div className="max-w-lg">
             <h1 className="text-xl font-semibold text-[var(--color-text-primary)] mb-6">Settings</h1>
-            <div className="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)]">
-                <p className="text-sm text-[var(--color-text-muted)] mb-4">Settings and preferences.</p>
-                <button className="px-4 py-2 rounded-lg bg-white/[0.06] text-sm text-[var(--color-text-primary)] hover:bg-white/[0.1] transition-colors border border-[var(--color-border)]">
-                    Manage Connections
-                </button>
+
+            <div className="space-y-4">
+                <div className="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)]">
+                    <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Account</h2>
+                    <p className="text-xs text-[var(--color-text-muted)] mb-4">
+                        Connected as GitHub user
+                    </p>
+                    <button
+                        onClick={logout}
+                        className="px-4 py-2 rounded-lg bg-red-500/10 text-sm text-red-400 hover:bg-red-500/20 transition-colors border border-red-500/20"
+                    >
+                        Logout
+                    </button>
+                </div>
+
+                <div className="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)]">
+                    <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Data Cache</h2>
+                    <p className="text-xs text-[var(--color-text-muted)] mb-4">
+                        Your GitHub data is cached for 1 hour to improve performance.
+                    </p>
+                    <button
+                        onClick={refetch}
+                        className="px-4 py-2 rounded-lg bg-white/[0.06] text-sm text-[var(--color-text-primary)] hover:bg-white/[0.1] transition-colors border border-[var(--color-border)]"
+                    >
+                        Refresh Data
+                    </button>
+                </div>
+
+                <div className="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)]">
+                    <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">About</h2>
+                    <p className="text-xs text-[var(--color-text-muted)]">
+                        StreakForge v1.0.0 - Track your coding habits. Build streaks. Forge unstoppable developer momentum.
+                    </p>
+                </div>
             </div>
         </div>
     );

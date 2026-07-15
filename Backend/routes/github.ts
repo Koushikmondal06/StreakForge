@@ -1,27 +1,25 @@
-import express, { Request, Response } from "express";
+import express, { Response } from "express";
 import { getRepos, getCommits, processCommits, calculateStreak, syncUserGithubData, getUser } from "../services/githubService";
 import { getCachedUserData, updateCachedUserData } from "../services/supabaseService";
-
+import { authMiddleware, AuthRequest } from "../middleware/auth";
 
 const router = express.Router();
 
-router.get("/repos", async (req: Request, res: Response) => {
+const validateRepoParams = (owner: string, repo: string): boolean => {
+    const repoPattern = /^[a-zA-Z0-9._-]+$/;
+    return repoPattern.test(owner) && repoPattern.test(repo);
+};
+
+router.get("/repos", authMiddleware, async (req: AuthRequest, res: Response) => {
     try {
-        const token = req.headers.authorization?.split(" ")[1];
-
-        if (!token) {
-            return res.status(401).json({ error: "No token provided" });
-        }
-
+        const token = req.token!;
         const user = await getUser(token);
 
-        // Try cache
         const cached = await getCachedUserData(user.login);
         if (cached && cached.repos_json) {
             return res.json(cached.repos_json);
         }
 
-        // Fetch fresh if no cache
         const { repos, analytics } = await syncUserGithubData(token);
         await updateCachedUserData(user.login, repos, analytics, {});
         res.json(repos);
@@ -31,25 +29,24 @@ router.get("/repos", async (req: Request, res: Response) => {
         res.status(500).json({ error: "Failed to fetch repos" });
     }
 });
-router.get("/commits", async (req: Request, res: Response) => {
+
+router.get("/commits", authMiddleware, async (req: AuthRequest, res: Response) => {
     try {
-        const token = req.headers.authorization?.split(" ")[1];
-
-        if (!token) {
-            return res.status(401).json({ error: "No token provided" });
-        }
-
+        const token = req.token!;
         const { owner, repo } = req.query;
 
         if (!owner || !repo) {
             return res.status(400).json({ error: "Owner and repo required" });
         }
 
-        const commits = await getCommits(
-            token,
-            owner as string,
-            repo as string
-        );
+        const ownerStr = owner as string;
+        const repoStr = repo as string;
+
+        if (!validateRepoParams(ownerStr, repoStr)) {
+            return res.status(400).json({ error: "Invalid owner or repo format" });
+        }
+
+        const commits = await getCommits(token, ownerStr, repoStr);
 
         const processed = processCommits(commits);
         const streak = calculateStreak(processed);
@@ -69,23 +66,17 @@ router.get("/commits", async (req: Request, res: Response) => {
         res.status(500).json({ error: "Failed to fetch commits" });
     }
 });
-router.get("/analytics", async (req: Request, res: Response) => {
+
+router.get("/analytics", authMiddleware, async (req: AuthRequest, res: Response) => {
     try {
-        const token = req.headers.authorization?.split(" ")[1];
-
-        if (!token) {
-            return res.status(401).json({ error: "No token provided" });
-        }
-
+        const token = req.token!;
         const user = await getUser(token);
 
-        // Try cache
         const cached = await getCachedUserData(user.login);
         if (cached && cached.analytics_json) {
             return res.json(cached.analytics_json);
         }
 
-        // Fetch fresh if no cache
         const { repos, analytics } = await syncUserGithubData(token);
         await updateCachedUserData(user.login, repos, analytics, {});
 

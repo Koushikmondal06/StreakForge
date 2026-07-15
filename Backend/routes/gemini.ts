@@ -12,6 +12,10 @@ if (apiKey) {
     genAI = new GoogleGenerativeAI(apiKey);
 }
 
+const sanitizeInput = (input: string): string => {
+    return input.trim().substring(0, 10000);
+};
+
 router.post("/", async (req, res) => {
     try {
         if (!genAI) {
@@ -20,13 +24,19 @@ router.post("/", async (req, res) => {
         }
 
         const { prompt } = req.body;
-        if (!prompt) {
-            res.status(400).json({ error: "Prompt is required in the request body." });
+        if (!prompt || typeof prompt !== 'string') {
+            res.status(400).json({ error: "Prompt is required and must be a string." });
+            return;
+        }
+
+        const sanitizedPrompt = sanitizeInput(prompt);
+        if (sanitizedPrompt.length === 0) {
+            res.status(400).json({ error: "Prompt cannot be empty." });
             return;
         }
 
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-        const result = await model.generateContent(prompt);
+        const result = await model.generateContent(sanitizedPrompt);
         const responseText = result.response.text();
 
         res.json({ response: responseText });
@@ -49,9 +59,11 @@ router.post("/dashboard-analysis", async (req, res) => {
             return;
         }
 
+        const sanitizedUsername = username ? sanitizeInput(String(username)) : 'the user';
+
         const prompt = `You are the AI engine for StreakForge, an intelligent developer habit tracker.
 Here is the user's GitHub data. 
-USERNAME: ${username || 'the user'}
+USERNAME: ${sanitizedUsername}
 ANALYTICS: ${JSON.stringify(analytics)}. 
 REPOS: ${JSON.stringify(repos)}.
 

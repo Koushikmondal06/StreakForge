@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
+import { GitHubRepo, AnalyticsData, GitHubCommit, CachedUserData } from '../types';
+
 dotenv.config();
 
 const supabaseUrl = process.env.SUPABASE_URL || '';
@@ -9,12 +11,7 @@ export const supabase = supabaseUrl && supabaseKey
     ? createClient(supabaseUrl, supabaseKey)
     : null;
 
-/**
- * Checks the Supabase database for cached data.
- * @param username GitHub username
- * @returns Cached data if it's less than 1 hour old, else null.
- */
-export const getCachedUserData = async (username: string) => {
+export const getCachedUserData = async (username: string): Promise<CachedUserData | null> => {
     if (!supabase) return null;
 
     try {
@@ -26,26 +23,27 @@ export const getCachedUserData = async (username: string) => {
 
         if (error || !data) return null;
 
-        // Check if cache is older than 1 hour
         const lastSynced = new Date(data.last_synced_at).getTime();
         const now = Date.now();
         const oneHourMs = 60 * 60 * 1000;
 
         if (now - lastSynced > oneHourMs) {
-            return null; // Cache expired
+            return null;
         }
 
-        return data;
+        return data as CachedUserData;
     } catch (e) {
         console.error("Supabase get cache error:", e);
         return null;
     }
 };
 
-/**
- * Upserts a user's GitHub data into Supabase cache.
- */
-export const updateCachedUserData = async (username: string, repos: any, analytics: any, commitsPerRepo: any) => {
+export const updateCachedUserData = async (
+    username: string,
+    repos: GitHubRepo[],
+    analytics: AnalyticsData,
+    commitsPerRepo: Record<string, GitHubCommit[]>
+): Promise<void> => {
     if (!supabase) return;
 
     try {
