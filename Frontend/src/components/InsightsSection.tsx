@@ -1,93 +1,106 @@
-import { useMemo } from 'react';
-import { TrendingUp, Calendar, Zap, Moon, Sun, type LucideIcon } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useMemo } from 'react'
+import { TrendingUp, Clock, Zap, Calendar } from 'lucide-react'
 
 interface InsightsSectionProps {
-    commitsPerDay: Record<string, number>;
-    streak: number;
+  commitsPerDay: Record<string, number>
+  streak: number
 }
 
-interface Insight {
-    icon: LucideIcon;
-    text: string;
-    accent: string;
+function getWeekdayVsWeekend(commitsPerDay: Record<string, number>) {
+  let weekday = 0, weekend = 0
+  for (const [date, count] of Object.entries(commitsPerDay)) {
+    const day = new Date(date).getDay()
+    if (day === 0 || day === 6) weekend += count
+    else weekday += count
+  }
+  const weekdayDays = Math.max(1, Object.keys(commitsPerDay).length * 5 / 7)
+  const weekendDays = Math.max(1, Object.keys(commitsPerDay).length * 2 / 7)
+  return {
+    weekdayAvg: (weekday / weekdayDays).toFixed(1),
+    weekendAvg: (weekend / weekendDays).toFixed(1),
+    preference: weekday > weekend ? 'Weekdays' : weekend > weekday ? 'Weekends' : 'Balanced',
+  }
+}
+
+function getMostProductiveDay(commitsPerDay: Record<string, number>) {
+  const dayTotals: Record<string, number> = {}
+  const dayCounts: Record<string, number> = {}
+  for (const [date, count] of Object.entries(commitsPerDay)) {
+    const dayName = new Date(date).toLocaleDateString('en-US', { weekday: 'long' })
+    dayTotals[dayName] = (dayTotals[dayName] || 0) + count
+    dayCounts[dayName] = (dayCounts[dayName] || 0) + 1
+  }
+  let best = { day: '-', avg: 0 }
+  for (const [day, total] of Object.entries(dayTotals)) {
+    const avg = total / (dayCounts[day] || 1)
+    if (avg > best.avg) best = { day, avg }
+  }
+  return { day: best.day, avg: best.avg.toFixed(1) }
 }
 
 export default function InsightsSection({ commitsPerDay, streak }: InsightsSectionProps) {
-    const insights = useMemo(() => {
-        const entries = Object.entries(commitsPerDay);
-        if (entries.length === 0) return [];
+  const insights = useMemo(() => {
+    const weekdayWeekend = getWeekdayVsWeekend(commitsPerDay)
+    const productiveDay = getMostProductiveDay(commitsPerDay)
+    const totalDays = Object.keys(commitsPerDay).length
+    return { weekdayWeekend, productiveDay, totalDays }
+  }, [commitsPerDay])
 
-        const result: Insight[] = [];
+  const items = [
+    {
+      icon: TrendingUp,
+      label: 'Work Pattern',
+      value: insights.weekdayWeekend.preference,
+      detail: `Weekday avg: ${insights.weekdayWeekend.weekdayAvg} | Weekend avg: ${insights.weekdayWeekend.weekendAvg}`,
+      color: 'text-accent',
+      bg: 'bg-accent-muted',
+    },
+    {
+      icon: Clock,
+      label: 'Most Productive Day',
+      value: insights.productiveDay.day,
+      detail: `Average ${insights.productiveDay.avg} commits per ${insights.productiveDay.day.toLowerCase()}`,
+      color: 'text-streak',
+      bg: 'bg-streak-muted',
+    },
+    {
+      icon: Zap,
+      label: 'Current Streak',
+      value: `${streak} day${streak !== 1 ? 's' : ''}`,
+      detail: streak > 0 ? 'Keep the momentum going!' : 'Start coding today!',
+      color: 'text-yellow-400',
+      bg: 'bg-yellow-400/10',
+    },
+    {
+      icon: Calendar,
+      label: 'Total Active Days',
+      value: insights.totalDays.toString(),
+      detail: `${insights.totalDays > 0 ? 'Great consistency' : 'No data yet'}`,
+      color: 'text-success',
+      bg: 'bg-success-muted',
+    },
+  ]
 
-        let weekdayCommits = 0;
-        let weekendCommits = 0;
-        const dayCount: Record<string, number> = {};
-
-        for (const [date, count] of entries) {
-            const day = new Date(date).getDay();
-            const dayName = new Date(date).toLocaleDateString('en-US', { weekday: 'long' });
-            dayCount[dayName] = (dayCount[dayName] ?? 0) + count;
-            if (day === 0 || day === 6) {
-                weekendCommits += count;
-            } else {
-                weekdayCommits += count;
-            }
-        }
-
-        if (weekdayCommits > weekendCommits * 2) {
-            result.push({ icon: Sun, text: 'Weekday warrior — most activity on weekdays.', accent: 'text-amber-400' });
-        } else if (weekendCommits > weekdayCommits) {
-            result.push({ icon: Moon, text: 'Weekend coder — peak activity on weekends.', accent: 'text-indigo-400' });
-        } else {
-            result.push({ icon: Calendar, text: 'Balanced across the week.', accent: 'text-emerald-400' });
-        }
-
-        const sortedDays = Object.entries(dayCount).sort(([, a], [, b]) => b - a);
-        if (sortedDays[0]) {
-            result.push({ icon: Calendar, text: `Most productive on ${sortedDays[0][0]}s.`, accent: 'text-[var(--color-accent-hover)]' });
-        }
-
-        if (streak >= 7) {
-            result.push({ icon: TrendingUp, text: `${streak}-day streak — building a powerful habit.`, accent: 'text-orange-400' });
-        } else if (streak >= 3) {
-            result.push({ icon: TrendingUp, text: `${streak}-day streak — keep the momentum.`, accent: 'text-emerald-400' });
-        } else {
-            result.push({ icon: TrendingUp, text: 'Commit daily to build a streak.', accent: 'text-amber-400' });
-        }
-
-        const sorted = [...entries].sort(([, a], [, b]) => b - a);
-        if (sorted[0]) {
-            const peakDate = new Date(sorted[0][0]).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            result.push({ icon: Zap, text: `Peak: ${sorted[0][1]} commits on ${peakDate}.`, accent: 'text-[var(--color-accent-hover)]' });
-        }
-
-        return result;
-    }, [commitsPerDay, streak]);
-
-    if (insights.length === 0) return null;
-
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-5 sm:p-6 h-full"
-        >
-            <h3 className="mb-4 text-sm font-semibold text-[var(--color-text-primary)]">Insights</h3>
-            <div className="space-y-2">
-                {insights.map((insight, i) => (
-                    <div
-                        key={i}
-                        className="flex items-start gap-3 rounded-xl bg-[var(--color-bg-secondary)] px-4 py-3 transition-colors duration-200 hover:bg-[var(--color-bg-card-hover)]"
-                    >
-                        <insight.icon className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${insight.accent}`} />
-                        <p className="text-[12px] leading-relaxed text-[var(--color-text-secondary)]">
-                            {insight.text}
-                        </p>
-                    </div>
-                ))}
+  return (
+    <div className="glass rounded-xl p-4 sm:p-6">
+      <h3 className="text-sm font-semibold text-text-primary mb-4">Insights</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {items.map((item) => {
+          const Icon = item.icon
+          return (
+            <div key={item.label} className="flex items-start gap-3 p-3 rounded-lg bg-bg-primary/50 border border-border-default">
+              <div className={`w-9 h-9 rounded-lg ${item.bg} flex items-center justify-center shrink-0`}>
+                <Icon className={`w-4 h-4 ${item.color}`} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs text-text-muted">{item.label}</p>
+                <p className="text-sm font-semibold text-text-primary truncate">{item.value}</p>
+                <p className="text-xs text-text-muted mt-0.5">{item.detail}</p>
+              </div>
             </div>
-        </motion.div>
-    );
+          )
+        })}
+      </div>
+    </div>
+  )
 }

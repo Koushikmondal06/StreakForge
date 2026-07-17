@@ -12,7 +12,7 @@ interface AnalyticsState {
     repos: Repo[];
     loading: boolean;
     error: string | null;
-    selectedRepo: string | null; // "all" or "owner/repo"
+    selectedRepo: string | null;
 }
 
 export function useAnalytics(token: string | null) {
@@ -56,7 +56,6 @@ export function useAnalytics(token: string | null) {
         async (repoFullName: string | null) => {
             if (!token) return;
             if (!repoFullName) {
-                // back to "All Repos"
                 setState((s) => ({ ...s, selectedRepo: null, loading: true }));
                 try {
                     const analytics = await getAnalytics(token);

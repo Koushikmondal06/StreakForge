@@ -1,144 +1,136 @@
-import { useState } from 'react';
-import { Sparkles, Brain, RefreshCw } from 'lucide-react';
-import { API_BASE } from '@/services/api';
-import { motion } from 'framer-motion';
-
-interface Repo {
-    name: string;
-    language: string | null;
-    stargazers_count: number;
-    forks_count?: number;
-    updated_at?: string;
-    pushed_at?: string;
-    size?: number;
-}
-
-interface Analytics {
-    streak: number;
-    totalCommits: number;
-    commitsPerDay: Record<string, number>;
-}
+import { useState } from 'react'
+import { Sparkles, Loader2, Copy, Check } from 'lucide-react'
+import { API_BASE } from '@/services/api'
+import type { Repo, AnalyticsData } from '@/services/api'
 
 interface AiDashboardAnalysisProps {
-    repos: Repo[];
-    analytics: Analytics;
-    username?: string;
+  token: string
+  repos: Repo[]
+  analytics: AnalyticsData | null
 }
 
-export default function AiDashboardAnalysis({ repos, analytics, username }: AiDashboardAnalysisProps) {
-    const [analysis, setAnalysis] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+export default function AiDashboardAnalysis({ token, repos, analytics }: AiDashboardAnalysisProps) {
+  const [analysis, setAnalysis] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
 
-    const fetchAnalysis = async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const minimalRepos = repos.map((r) => ({
-                name: r.name,
-                language: r.language,
-                stargazers_count: r.stargazers_count,
-                forks_count: r.forks_count,
-                updated_at: r.updated_at || r.pushed_at,
-                size: r.size
-            }));
+  const generate = async () => {
+    setLoading(true)
+    setError(null)
+    setAnalysis('')
+    try {
+      const res = await fetch(`${API_BASE}/ai/dashboard-analysis`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          repos: repos.map((r) => ({ name: r.full_name, description: r.description, stars: r.stargazers_count, language: r.language })),
+          analytics,
+        }),
+      })
+      if (!res.ok) throw new Error(`Analysis failed: ${res.status}`)
+      const data = await res.json()
+      setAnalysis(data.response)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to generate analysis')
+    } finally {
+      setLoading(false)
+    }
+  }
 
-            const response = await fetch(`${API_BASE}/ai/dashboard-analysis`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ repos: minimalRepos, analytics, username }),
-            });
+  const handleCopy = () => {
+    navigator.clipboard.writeText(analysis)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
-            if (!response.ok) throw new Error('Failed to fetch AI analysis');
+  const formatAnalysis = (text: string) => {
+    return text.split('\n').map((line, i) => {
+      if (line.startsWith('###')) {
+        return <h4 key={i} className="text-sm font-semibold text-text-primary mt-4 mb-2">{line.replace(/^###\s*/, '')}</h4>
+      }
+      if (line.startsWith('##')) {
+        return <h3 key={i} className="text-base font-bold text-text-primary mt-5 mb-2">{line.replace(/^##\s*/, '')}</h3>
+      }
+      if (line.startsWith('#')) {
+        return <h2 key={i} className="text-lg font-bold text-accent mt-6 mb-3">{line.replace(/^#\s*/, '')}</h2>
+      }
+      if (line.startsWith('- ') || line.startsWith('* ')) {
+        return <li key={i} className="text-sm text-text-secondary ml-4 list-disc">{line.slice(2)}</li>
+      }
+      if (line.trim() === '') return <br key={i} />
+      return <p key={i} className="text-sm text-text-secondary leading-relaxed">{line}</p>
+    })
+  }
 
-            const data = await response.json();
-            setAnalysis(data.response);
-        } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'An error occurred.');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const parseSections = (text: string) => {
-        const sections: { title: string; content: string }[] = [];
-        const parts = text.split('###');
-        for (const part of parts) {
-            const trimmed = part.trim();
-            if (!trimmed) continue;
-            const newlineIdx = trimmed.indexOf('\n');
-            if (newlineIdx === -1) {
-                sections.push({ title: trimmed, content: '' });
-            } else {
-                sections.push({
-                    title: trimmed.substring(0, newlineIdx).trim(),
-                    content: trimmed.substring(newlineIdx + 1).trim(),
-                });
-            }
-        }
-        return sections;
-    };
-
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-5 sm:p-6"
-        >
-            <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--color-accent-subtle)]">
-                        <Brain className="h-4 w-4 text-[var(--color-accent-hover)]" />
-                    </div>
-                    <div>
-                        <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">AI Analysis</h3>
-                        <p className="text-[11px] text-[var(--color-text-muted)]">Powered by Gemini</p>
-                    </div>
-                </div>
-
-                {!analysis && (
-                    <button
-                        onClick={fetchAnalysis}
-                        disabled={loading}
-                        className="flex items-center gap-1.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-3.5 py-2 text-[12px] font-medium text-[var(--color-text-secondary)] transition-all duration-200 hover:border-[var(--color-border-hover)] hover:text-[var(--color-text-primary)] disabled:opacity-50"
-                    >
-                        <Sparkles className="h-3.5 w-3.5 text-[var(--color-accent-hover)]" />
-                        {loading ? 'Analyzing...' : 'Generate'}
-                    </button>
-                )}
-            </div>
-
-            {error && (
-                <div className="mb-3 rounded-xl bg-red-500/5 border border-red-500/10 px-4 py-3 text-xs text-red-400">
-                    {error}
-                </div>
+  return (
+    <div className="glass rounded-xl p-4 sm:p-6">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-accent-muted flex items-center justify-center">
+            <Sparkles className="w-4 h-4 text-accent" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-text-primary">AI Analysis</h3>
+            <p className="text-xs text-text-muted">Powered by Gemini</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {analysis && (
+            <button
+              onClick={handleCopy}
+              className="p-2 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-all"
+            >
+              {copied ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
+            </button>
+          )}
+          <button
+            onClick={generate}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-accent text-white text-sm font-medium hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="hidden sm:inline">Analyzing...</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4" />
+                <span className="hidden sm:inline">Generate</span>
+              </>
             )}
+          </button>
+        </div>
+      </div>
 
-            {analysis && (
-                <div className="space-y-2.5">
-                    {parseSections(analysis).map((section, idx) => (
-                        <div key={idx} className="rounded-xl bg-[var(--color-bg-secondary)] px-4 py-3 border border-[var(--color-border)]">
-                            <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent-hover)] mb-1">
-                                {section.title}
-                            </p>
-                            <p className="text-[12px] text-[var(--color-text-secondary)] leading-relaxed">
-                                {section.content}
-                            </p>
-                        </div>
-                    ))}
-                    <div className="flex justify-end pt-1">
-                        <button
-                            onClick={fetchAnalysis}
-                            disabled={loading}
-                            className="flex items-center gap-1.5 text-[11px] text-[var(--color-text-muted)] transition-colors duration-200 hover:text-[var(--color-text-secondary)]"
-                        >
-                            <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
-                            {loading ? 'Re-analyzing...' : 'Refresh'}
-                        </button>
-                    </div>
-                </div>
-            )}
-        </motion.div>
-    );
+      {error && (
+        <div className="p-3 rounded-lg bg-danger-muted border border-danger/20 text-sm text-danger">
+          {error}
+        </div>
+      )}
+
+      {loading && (
+        <div className="py-8 text-center">
+          <Loader2 className="w-6 h-6 text-accent animate-spin mx-auto mb-2" />
+          <p className="text-sm text-text-muted">Generating insights...</p>
+        </div>
+      )}
+
+      {analysis && (
+        <div className="prose-invert max-w-none bg-bg-primary/50 rounded-lg p-4 border border-border-default max-h-96 overflow-y-auto">
+          {formatAnalysis(analysis)}
+        </div>
+      )}
+
+      {!loading && !analysis && !error && (
+        <p className="text-sm text-text-muted text-center py-4">
+          Click Generate to get AI-powered insights about your coding patterns.
+        </p>
+      )}
+    </div>
+  )
 }

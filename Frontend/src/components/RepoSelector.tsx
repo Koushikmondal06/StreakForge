@@ -1,72 +1,65 @@
-import { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Check } from 'lucide-react';
-
-interface Repo {
-    id: number;
-    name: string;
-    full_name: string;
-    owner: { login: string };
-}
+import { useState, useRef, useEffect } from 'react'
+import { ChevronDown, Check, Folder } from 'lucide-react'
+import type { Repo } from '@/services/api'
 
 interface RepoSelectorProps {
-    repos: Repo[];
-    selectedRepo: string | null;
-    onSelect: (repoFullName: string | null) => void;
+  repos: Repo[]
+  selectedRepo: string | null
+  onSelect: (repoFullName: string | null) => void
 }
 
 export default function RepoSelector({ repos, selectedRepo, onSelect }: RepoSelectorProps) {
-    const [open, setOpen] = useState(false);
-    const ref = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
 
-    useEffect(() => {
-        const handler = (e: MouseEvent) => {
-            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-        };
-        document.addEventListener('mousedown', handler);
-        return () => document.removeEventListener('mousedown', handler);
-    }, []);
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
 
-    const label = selectedRepo || 'All Repositories';
+  const displayLabel = selectedRepo || 'All Repositories'
 
-    return (
-        <div ref={ref} className="relative">
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2 px-4 py-2.5 rounded-lg glass text-sm font-medium text-text-secondary hover:text-text-primary transition-all w-full sm:w-auto"
+      >
+        <Folder className="w-4 h-4 text-accent" />
+        <span className="truncate max-w-[200px]">{displayLabel}</span>
+        <ChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="absolute top-full left-0 right-0 sm:right-auto sm:min-w-[280px] mt-2 rounded-xl glass border border-border-default shadow-2xl z-50 max-h-64 overflow-y-auto animate-scale-in">
+          <button
+            onClick={() => { onSelect(null); setOpen(false) }}
+            className={`flex items-center gap-3 w-full px-4 py-3 text-sm text-left transition-colors hover:bg-bg-tertiary ${
+              !selectedRepo ? 'text-accent bg-accent-muted' : 'text-text-secondary'
+            }`}
+          >
+            <Folder className="w-4 h-4" />
+            <span className="flex-1">All Repositories</span>
+            {!selectedRepo && <Check className="w-4 h-4 text-accent" />}
+          </button>
+          {repos.map((repo) => (
             <button
-                onClick={() => setOpen(!open)}
-                className="flex items-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] px-3.5 py-2 text-[13px] font-medium text-[var(--color-text-secondary)] transition-all duration-200 hover:border-[var(--color-border-hover)] hover:text-[var(--color-text-primary)]"
+              key={repo.id}
+              onClick={() => { onSelect(repo.full_name); setOpen(false) }}
+              className={`flex items-center gap-3 w-full px-4 py-3 text-sm text-left transition-colors hover:bg-bg-tertiary border-t border-border-default ${
+                selectedRepo === repo.full_name ? 'text-accent bg-accent-muted' : 'text-text-secondary'
+              }`}
             >
-                <span className="max-w-[140px] truncate">{label}</span>
-                <ChevronDown className={`h-3.5 w-3.5 text-[var(--color-text-muted)] transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+              <Folder className="w-4 h-4 shrink-0" />
+              <span className="flex-1 truncate">{repo.full_name}</span>
+              {selectedRepo === repo.full_name && <Check className="w-4 h-4 text-accent shrink-0" />}
             </button>
-
-            {open && (
-                <div className="absolute right-0 top-full z-50 mt-1.5 w-64 overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-elevated)] shadow-2xl shadow-black/40">
-                    <div className="max-h-64 overflow-y-auto p-1">
-                        <button
-                            onClick={() => { onSelect(null); setOpen(false); }}
-                            className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-[13px] transition-colors duration-150 ${!selectedRepo
-                                ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent-hover)]'
-                                : 'text-[var(--color-text-secondary)] hover:bg-white/[0.04] hover:text-[var(--color-text-primary)]'
-                            }`}
-                        >
-                            <span className="font-medium">All Repositories</span>
-                            {!selectedRepo && <Check className="h-3.5 w-3.5" />}
-                        </button>
-                        {repos.map(repo => (
-                            <button
-                                key={repo.id}
-                                onClick={() => { onSelect(repo.full_name); setOpen(false); }}
-                                className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-[13px] transition-colors duration-150 ${selectedRepo === repo.full_name
-                                    ? 'bg-[var(--color-accent-subtle)] text-[var(--color-accent-hover)]'
-                                    : 'text-[var(--color-text-secondary)] hover:bg-white/[0.04] hover:text-[var(--color-text-primary)]'
-                                }`}
-                            >
-                                <span className="truncate font-medium">{repo.name}</span>
-                                {selectedRepo === repo.full_name && <Check className="h-3.5 w-3.5 shrink-0" />}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            )}
+          ))}
         </div>
-    );
+      )}
+    </div>
+  )
 }
