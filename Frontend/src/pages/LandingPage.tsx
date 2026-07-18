@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Flame, ArrowRight, GitCommit, BarChart3, Sparkles, Shield, Zap, Globe } from 'lucide-react'
+import Background3D from '../components/Background3D'
 
 const features = [
   {
@@ -69,13 +70,14 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      <section className="relative pt-32 pb-20 sm:pt-40 sm:pb-28 px-4 overflow-hidden">
-        <div className="absolute inset-0 overflow-hidden">
+      <section className="relative pt-32 pb-20 sm:pt-40 sm:pb-28 px-4 overflow-hidden min-h-[90vh] flex items-center">
+        <Background3D />
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-accent/20 rounded-full blur-[120px]" />
           <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-streak/15 rounded-full blur-[120px]" />
         </div>
 
-        <div className="relative max-w-4xl mx-auto text-center">
+        <div className="relative z-10 max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-xs font-medium text-text-secondary mb-6">
             <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
             Built for developers who ship
